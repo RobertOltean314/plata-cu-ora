@@ -13,5 +13,6 @@ namespace PlataCuOra.Server.Repository.Interface
         Task<User> DeleteAsync(int id);
         Task<User?> GetByUsername(string username);
         Task<bool> RegisterUserAsync(RegisterRequestDTO request);
+        Task<(bool success, string? token, Dictionary<string, object>? userData, string? error)> LoginUserAsync(LoginRequestDTO request);
     }
 }

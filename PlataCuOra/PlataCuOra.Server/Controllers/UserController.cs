@@ -24,6 +24,20 @@ namespace PlataCuOra.Server.Controllers
                 return BadRequest("Error registering user.");
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDTO request)
+        {
+            var (success, token, userData, error) = await _userRepository.LoginUserAsync(request);
+            if (!success)
+                return Unauthorized(new { message = error });
+            return Ok(new
+            {
+                message = "Login successful.",
+                token,
+                user = userData
+            });
+        }
+
         [HttpPost("test-firebase")]
         public IActionResult TestFirebase()
         {

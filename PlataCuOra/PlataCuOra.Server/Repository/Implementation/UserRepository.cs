@@ -6,6 +6,7 @@ using PlataCuOra.Server.Domain.DTO;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net.Http;
 namespace PlataCuOra.Server.Repository.Implementation
 {
     public class UserRepository : IUserRepository
@@ -13,11 +14,14 @@ namespace PlataCuOra.Server.Repository.Implementation
         private readonly FirebaseAuth _auth;
         private readonly FirestoreDb _firestoreDb;
         private readonly ILogger<UserRepository> _logger;
-        public UserRepository(FirebaseAuth auth, FirestoreDb firestoreDb, ILogger<UserRepository> logger)
+        private readonly HttpClient _httpClient;
+        private readonly string _firebaseApiKey = "AIzaSyCI2nSWbRAhK8lZh69a2dO55G9-yphxkOI";
+        public UserRepository(FirebaseAuth auth, FirestoreDb firestoreDb, ILogger<UserRepository> logger, HttpClient httpClient)
         {
             _auth = auth;
             _firestoreDb = firestoreDb;
             _logger = logger;
+            _httpClient = httpClient;
         }
         public async Task<bool> RegisterUserAsync(RegisterRequestDTO request)
         {
@@ -41,9 +45,39 @@ namespace PlataCuOra.Server.Repository.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Eroare la înregistrarea utilizatorului.");
+                _logger.LogError(ex, "Error registering user.");
                 //return false;
                 throw;
+            }
+        }
+
+        public async Task<(bool success, string? token, Dictionary<string, object>? userData, string? error)> LoginUserAsync(LoginRequestDTO request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={_firebaseApiKey}",
+                    new
+                    {
+                        email = request.Email,
+                        password = request.Password,
+                        returnSecureToken = true
+                    });
+                if (!response.IsSuccessStatusCode)
+                    return (false, null, null, "Invalid email or password.");
+                var result = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+                if (result == null || !result.ContainsKey("idToken") || !result.ContainsKey("localId"))
+                    return (false, null, null, "Invalid response from Firebase.");
+                var userId = result["localId"].ToString();
+                var docSnapshot = await _firestoreDb.Collection("users").Document(userId).GetSnapshotAsync();
+                if (!docSnapshot.Exists)
+                    return (false, null, null, "User not found in Firestore.");
+                return (true, result["idToken"].ToString(), docSnapshot.ToDictionary(), null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login.");
+                return (false, null, null, "Unexpected error occurred.");
             }
         }
         public async Task<User> CreateAsync(User user)
