@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlataCuOra.Server", "PlataCuOra.Server\PlataCuOra.Server.csproj", "{0585AC16-D552-4E4D-BABF-7CFFFB32BBEE}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "platacuora.client", "platacuora.client\platacuora.client.esproj", "{701D75AA-88E8-4E80-8386-36C67D9010E3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0585AC16-D552-4E4D-BABF-7CFFFB32BBEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0585AC16-D552-4E4D-BABF-7CFFFB32BBEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0585AC16-D552-4E4D-BABF-7CFFFB32BBEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0585AC16-D552-4E4D-BABF-7CFFFB32BBEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{701D75AA-88E8-4E80-8386-36C67D9010E3}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F2228683-D2F1-4360-A6D1-47C2FD08E3DA}
+	EndGlobalSection
+EndGlobal
