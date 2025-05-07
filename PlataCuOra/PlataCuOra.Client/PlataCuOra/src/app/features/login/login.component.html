@@ -1,0 +1,36 @@
+<div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <div class="container" style="max-width: 300px;">
+      <h1 class="text-center mb-4">Log in</h1>
+      <form #form="ngForm" (ngSubmit)="onFormSubmit()">
+        <div class="d-flex flex-column justify-content-center ">
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="loginEmail"
+              name="loginEmail"
+              placeholder="Email"
+              required
+              [(ngModel)]="model.email"
+            />
+          </div>
+          <div class="mb-3">
+            <input
+              type="password"
+              class="form-control"
+              id="loginPassword"
+              name="loginPassword"
+              placeholder="Password"
+              required
+              [(ngModel)]="model.password"
+            />
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Login</button>
+          </div>
+          <a routerLink="/register" class="text-center mt-3">Don't have an account? Register</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
