@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 @PlataCuOra.Server_HostAddress = http://localhost:5117
+=======
+@PlataCuOra.Server_HostAddress = http://localhost:5281
+>>>>>>> SqlServerLogin
 
 GET {{PlataCuOra.Server_HostAddress}}/weatherforecast/
 Accept: application/json
