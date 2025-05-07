@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Text.Json;
 namespace PlataCuOra.Server.Repository.Implementation
 {
     public class UserRepository : IUserRepository
@@ -15,7 +16,8 @@ namespace PlataCuOra.Server.Repository.Implementation
         private readonly FirestoreDb _firestoreDb;
         private readonly ILogger<UserRepository> _logger;
         private readonly HttpClient _httpClient;
-        private readonly string _firebaseApiKey = "AIzaSyCI2nSWbRAhK8lZh69a2dO55G9-yphxkOI";
+        private readonly string _firebaseApiKey = JsonDocument.Parse(File.ReadAllText("Keys/firebaseApiKey.json"))
+							.RootElement.GetProperty("string").GetString()!;
         public UserRepository(FirebaseAuth auth, FirestoreDb firestoreDb, ILogger<UserRepository> logger, HttpClient httpClient)
         {
             _auth = auth;

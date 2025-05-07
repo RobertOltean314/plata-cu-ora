@@ -24,12 +24,12 @@ export class UserService {
     return this.user$;
   }
 
-  login (model: LoginRequest) : Observable<User> {
-    return this.http.post<User>(`${environment.apiBaseUrl}/api/user/login`, model);
+  login (model: LoginRequest) : Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/api/user/login`, model);
   }
 
-  register (model: RegisterRequest) : Observable<User> {
-    return this.http.post<User>(`${environment.apiBaseUrl}/api/user/register`, model);
+  register (model: RegisterRequest) : Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/api/user/register`, model);
   }
 
   logout(): Observable<void> {
@@ -40,6 +40,10 @@ export class UserService {
 
   private getUserFromSession(): User | null {
     const userJson = sessionStorage.getItem('user');
-    return userJson ? JSON.parse(userJson) : null;
+
+    if (userJson === null || userJson === undefined) {
+      return null;
+    }
+    return JSON.parse(userJson) as User;
   }
 }

@@ -5,7 +5,7 @@ import { RegisterComponent } from './features/register/register.component';
 import { InfoComponent } from './features/info/info.component';
 import { AuthGuard } from './core/guards/auth.guard';
 
-const routes: Routes = [
+export const routes: Routes = [
   { path: 'login', component: LoginComponent, runGuardsAndResolvers: 'always'},
   { path: 'register', component: RegisterComponent},
   { path: 'account', component: InfoComponent, canActivate: [AuthGuard]},

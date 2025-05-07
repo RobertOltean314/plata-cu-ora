@@ -41,7 +41,7 @@ export class RegisterComponent implements OnInit, OnDestroy  {
     if (!this.model)
       return;
     this.registerSubscription = this.userService.register(this.model).subscribe({
-      next: (response: User) => {
+      next: () => {
         this.router.navigate(['/login']);
       }
     });

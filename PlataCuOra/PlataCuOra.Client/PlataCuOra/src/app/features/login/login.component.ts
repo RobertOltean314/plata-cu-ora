@@ -32,9 +32,12 @@ export class LoginComponent implements OnInit, OnDestroy  {
     if (!this.model)
       return;
     this.loginSubscription = this.userService.login(this.model).subscribe({
-      next: (response: User) => {
-        this.userService.setLoggedInUser(response);
-        this.router.navigate(['/account']);
+      next: (response) => {
+        if (response.token) {
+          this.userService.setLoggedInUser(response.user);
+          sessionStorage.setItem('token', response.token);
+          this.router.navigate(['/account']);
+        }
       }
     });
   }

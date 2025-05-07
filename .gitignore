@@ -1,7 +1,8 @@
 <<<<<<< HEAD
 # Firebase key
-./PlataCuOra/PlataCuOra.Server/keys
+./PlataCuOra/PlataCuOra.Server/Keys
 firebaseKey.json
+firebaseApiKey.json
 keys/
 
 # Ignore Visual Studio temporary files, build results, and
