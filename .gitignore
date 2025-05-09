@@ -1,0 +1,20 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# Dependencies
+**/node_modules/
+**/.angular/
+
+# IDE files
+**/.vs/
+**/*.user
+
+# Sensitive information
+**/Keys/
+**/firebaseKey.json
+**/appsettings*.json
+**/Properties/launchSettings.json
+
+# Misc
+**/.DS_Store
