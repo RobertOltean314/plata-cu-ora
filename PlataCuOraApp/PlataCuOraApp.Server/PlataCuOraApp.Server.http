@@ -1,0 +1,6 @@
+@PlataCuOraApp.Server_HostAddress = http://localhost:5223
+
+GET {{PlataCuOraApp.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

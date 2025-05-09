@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlataCuOraApp.Server", "PlataCuOraApp.Server\PlataCuOraApp.Server.csproj", "{511E484C-C7EE-4025-8B26-7F5F32BDA4C0}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "platacuoraapp.client", "platacuoraapp.client\platacuoraapp.client.esproj", "{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{511E484C-C7EE-4025-8B26-7F5F32BDA4C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{511E484C-C7EE-4025-8B26-7F5F32BDA4C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{511E484C-C7EE-4025-8B26-7F5F32BDA4C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{511E484C-C7EE-4025-8B26-7F5F32BDA4C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B915A3B4-974F-4E59-B50B-900A9543874C}
+	EndGlobalSection
+EndGlobal
