@@ -9,7 +9,6 @@ namespace PlataCuOra.Server.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-
         public string Role { get; set; } = string.Empty;
     }
 }
