@@ -1,0 +1,65 @@
+.min-vh-90 {
+  min-height: 90vh;
+}
+
+.card {
+  transition: all 0.3s ease;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+  }
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+}
+
+.btn {
+  transition: all 0.2s ease;
+  border-radius: 50px;
+  padding: 10px 20px;
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+  .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-2px);
+  }
+
+.rounded-pill {
+  border-radius: 50px !important;
+  font-size: 0.9rem;
+  border-color: #e0e0e0;
+  color: #555;
+}
+
+.minimalist .card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.minimalist .btn {
+  border-radius: 4px;
+}
+
+.minimalist .rounded-pill {
+  border-radius: 4px !important;
+}
