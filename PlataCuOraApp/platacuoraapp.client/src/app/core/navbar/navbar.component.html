@@ -1,0 +1,86 @@
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <!-- University Logo -->
+        <a class="navbar-brand" routerLink="/">
+            <div class="logo-container">
+                <img src="img/ulbs-logo.png" alt="Universitatea Lucian Blaga din Sibiu" class="navbar-logo">
+            </div>
+        </a>
+
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler" type="button" (click)="isMenuCollapsed = !isMenuCollapsed"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse" [class.show]="!isMenuCollapsed" id="navbarContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <!-- Seen only when loggedin -->
+                <ng-container *ngIf="user">
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/" routerLinkActive="active"
+                            [routerLinkActiveOptions]="{exact: true}">
+                            <i class="bi bi-house-door"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/documents" routerLinkActive="active">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Documents
+                        </a>
+                    </li>
+
+                    <!-- User Profile Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link profile-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="profile-avatar"
+                                [ngStyle]="{'background-image': 'url(assets/img/default-avatar.png)'}"></div>
+                            <span class="profile-name d-none d-lg-inline-block">{{user.displayName ||
+                                user.email}}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="navbarDropdown">
+                            <li>
+                                <h6 class="dropdown-header">Signed in as</h6>
+                                <div class="dropdown-user-info">
+                                    <span class="dropdown-user-name">{{user.displayName || 'User'}}</span>
+                                    <span class="dropdown-user-email">{{user.email}}</span>
+                                </div>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" routerLink="/user-profile">
+                                    <i class="bi bi-person"></i> Profile
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item logout-item" (click)="logout()">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a></li>
+                        </ul>
+                    </li>
+                </ng-container>
+
+                <!-- See this if not loggin -->
+                <ng-container *ngIf="!user">
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/login">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/register">
+                            <i class="bi bi-person-plus"></i>
+                            Register
+                        </a>
+                    </li>
+                </ng-container>
+            </ul>
+        </div>
+    </div>
+</nav>

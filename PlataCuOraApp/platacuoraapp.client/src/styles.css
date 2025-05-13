@@ -1,1 +1,21 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-blue: #0b2f63; /* Pantone 654 C Ultramarine Blue */
+  --primary-red: #f02137; /* Pantone Red 032 C */
+  --primary-white: #ffffff; /* Pantone GRIS 1 C Pure White */
+  --blue-80: #3e578d; /* 80% of primary blue */
+  --blue-60: #6780a7; /* 60% of primary blue */
+  --blue-40: #94a9c7; /* 40% of primary blue */
+  --blue-20: #c9d3e7; /* 20% of primary blue */
+  --red-light: #f8d2d6; /* Light red for backgrounds */
+  --red-80: #f34759; /* 80% of primary red */
+  --red-60: #f56d7c; /* 60% of primary red */
+  --red-40: #f8939e; /* 40% of primary red */
+  --gray-dark: #505050; /* Dark gray for text */
+  --gray-medium: #767676; /* Medium gray for secondary text */
+  --gray-light: #f5f5f5; /* Light gray for backgrounds */
+  --success-green: #10a0b6; /* Pantone 7467 C - Facultatea de INGINERIE color */
+  --shadow-light: 0 4px 12px rgba(11, 47, 99, 0.08);
+  --shadow-medium: 0 8px 24px rgba(11, 47, 99, 0.12);
+  --font-primary: Helvetica, "Helvetica Narrow", Arial, sans-serif;
+}

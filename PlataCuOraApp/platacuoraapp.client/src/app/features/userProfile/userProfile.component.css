@@ -1,65 +1,273 @@
+/* Profile Page CSS - Based on ULBS color palette */
+:root {
+  --primary-blue: #0b2f63; /* Pantone 654 C Ultramarine Blue */
+  --primary-red: #f02137; /* Pantone Red 032 C */
+  --primary-white: #ffffff; /* Pantone GRIS 1 C Pure White */
+  --blue-80: #3e578d; /* 80% of primary blue */
+  --blue-60: #6780a7; /* 60% of primary blue */
+  --blue-40: #94a9c7; /* 40% of primary blue */
+  --blue-20: #c9d3e7; /* 20% of primary blue */
+  --red-light: #f8d2d6; /* Light red for backgrounds */
+  --red-80: #f34759; /* 80% of primary red */
+  --red-60: #f56d7c; /* 60% of primary red */
+  --red-40: #f8939e; /* 40% of primary red */
+  --gray-dark: #505050; /* Dark gray for text */
+  --gray-medium: #767676; /* Medium gray for secondary text */
+  --gray-light: #f5f5f5; /* Light gray for backgrounds */
+  --success-green: #10a0b6; /* Pantone 7467 C - Facultatea de INGINERIE color */
+  --green-light: #e6f4f6; /* Light green for backgrounds */
+  --shadow-light: 0 4px 12px rgba(11, 47, 99, 0.08);
+  --shadow-medium: 0 8px 24px rgba(11, 47, 99, 0.12);
+  --shadow-hover: 0 15px 35px rgba(11, 47, 99, 0.15);
+  --font-primary: Helvetica, "Helvetica Narrow", Arial, sans-serif;
+  --border-radius: 12px;
+  --border-radius-pill: 50px;
+}
+
 .min-vh-90 {
   min-height: 90vh;
 }
 
+/* Card container styling */
 .card {
   transition: all 0.3s ease;
   max-width: 450px;
   margin: 0 auto;
+  font-family: var(--font-primary);
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  background-color: var(--primary-white);
 }
 
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
-  }
+.card:hover {
+  transform: translateY(-7px);
+  box-shadow: var(--shadow-hover) !important;
+}
 
+/* Profile header image */
 .card-img-top {
   height: 200px;
   object-fit: cover;
+  border-bottom: 4px solid var(--primary-red);
 }
 
+/* Role badge */
 .badge {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   padding: 0.5rem 1rem;
+  background-color: var(--primary-blue) !important;
+  border-radius: var(--border-radius-pill);
+  box-shadow: 0 3px 8px rgba(11, 47, 99, 0.2);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
 }
 
-.btn {
-  transition: all 0.2s ease;
-  border-radius: 50px;
-  padding: 10px 20px;
+/* Card body styling */
+.card-body {
+  padding: 1.75rem !important;
 }
 
-.btn-outline-primary:hover {
+/* User name styling */
+.fw-bold {
+  font-weight: 700 !important;
+  color: var(--primary-blue);
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Email styling */
+.text-muted {
+  color: var(--gray-medium) !important;
+  font-size: 1rem;
+}
+
+/* Role and Member pill badges */
+.rounded-pill {
+  border-radius: var(--border-radius-pill) !important;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.25rem !important;
+  border: 1px solid rgba(11, 47, 99, 0.15) !important;
+  color: var(--blue-80) !important;
+  background-color: rgba(201, 211, 231, 0.3);
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.rounded-pill:hover {
+  background-color: rgba(201, 211, 231, 0.5);
+  border-color: rgba(11, 47, 99, 0.25) !important;
   transform: translateY(-2px);
 }
 
-.btn-danger {
-  background-color: #dc3545;
-  border-color: #dc3545;
+.bi {
+  color: var(--primary-blue);
 }
 
-  .btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-    transform: translateY(-2px);
+/* Divider styling */
+.border-top {
+  border-top: 1px solid rgba(11, 47, 99, 0.1) !important;
+}
+
+/* Button styling */
+.btn {
+  transition: all 0.3s ease;
+  border-radius: var(--border-radius-pill);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Change credentials button */
+.btn-outline-primary {
+  color: var(--primary-blue) !important;
+  border: 2px solid var(--primary-blue) !important;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--blue-20) !important;
+  color: var(--primary-blue) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(11, 47, 99, 0.15);
+}
+
+.btn-outline-primary:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(11, 47, 99, 0.1);
+}
+
+/* Logout button */
+.btn-danger {
+  background-color: var(--primary-red) !important;
+  border: 2px solid var(--primary-red) !important;
+  color: var(--primary-white) !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--red-80) !important;
+  border-color: var(--red-80) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(240, 33, 55, 0.2);
+}
+
+.btn-danger:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(240, 33, 55, 0.15);
+}
+
+/* Button icons */
+.btn i {
+  font-size: 1.1rem;
+}
+
+/* Login page styling */
+.min-vh-100 {
+  min-height: 100vh;
+  background-color: var(--gray-light);
+}
+
+.min-vh-100 .text-center {
+  background-color: var(--primary-white);
+  border-radius: var(--border-radius);
+  padding: 3rem 2rem;
+  max-width: 450px;
+  box-shadow: var(--shadow-light);
+}
+
+.text-warning {
+  color: var(--primary-red) !important;
+}
+
+.lead {
+  color: var(--gray-medium);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+h2 {
+  color: var(--primary-blue);
+  font-weight: 600;
+  font-size: 1.8rem;
+}
+
+/* Login button */
+.min-vh-100 .btn-primary {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+  padding: 0.75rem 2rem;
+  transition: all 0.3s ease;
+}
+
+.min-vh-100 .btn-primary:hover {
+  background-color: var(--blue-80) !important;
+  border-color: var(--blue-80) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(11, 47, 99, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .fw-bold {
+    font-size: 1.5rem;
   }
 
-.rounded-pill {
-  border-radius: 50px !important;
-  font-size: 0.9rem;
-  border-color: #e0e0e0;
-  color: #555;
+  .card-body {
+    padding: 1.25rem !important;
+  }
+
+  .d-flex.flex-column.gap-3 {
+    gap: 1rem !important;
+  }
+
+  .rounded-pill {
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem !important;
+  }
 }
 
+/* Additional hover effect for user picture */
+.position-relative {
+  overflow: hidden;
+}
+
+.position-relative::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: var(--primary-red);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .position-relative::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Minimalist variation */
 .minimalist .card {
-  border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(11, 47, 99, 0.08);
 }
 
-.minimalist .btn {
-  border-radius: 4px;
-}
-
+.minimalist .btn,
 .minimalist .rounded-pill {
-  border-radius: 4px !important;
+  border-radius: 6px !important;
+}
+
+.minimalist .card-img-top {
+  border-bottom: none;
+}
+
+.minimalist .position-relative::after {
+  display: none;
 }

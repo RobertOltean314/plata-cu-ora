@@ -1,0 +1,30 @@
+<div class="homepage-container">
+    <header class="welcome-header">
+        <h1>Bine ați venit, {{username}}!</h1>
+        <p class="subtitle">Ce doriți să faceți astăzi?</p>
+    </header>
+
+    <div class="feature-grid">
+        @for (feature of features; track feature.title) {
+        <div class="feature-tile" [class.disabled]="!feature.available"
+            (click)="navigateToFeature(feature.route, feature.available)">
+            <div class="feature-icon">
+                <i class="{{feature.icon}}"></i>
+            </div>
+            <div class="feature-content">
+                <h3>{{feature.title}}</h3>
+                <p>{{feature.description}}</p>
+            </div>
+            <div class="feature-action">
+                @if (feature.available) {
+                <span class="availability available">Disponibil</span>
+                <i class="bi bi-arrow-right-circle"></i>
+                } @else {
+                <span class="availability coming-soon">În curând</span>
+                <i class="bi bi-clock"></i>
+                }
+            </div>
+        </div>
+        }
+    </div>
+</div>

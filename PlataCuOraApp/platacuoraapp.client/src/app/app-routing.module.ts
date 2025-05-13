@@ -6,13 +6,31 @@ import { UserProfileComponent } from './features/userProfile/userProfile.compone
 import { AuthGuard } from './core/guards/auth.guard';
 import { NotFoundComponent } from './features/notFound/notFound.component';
 import { CalendarComponent } from './features/calendar/calendar.component';
+import { HomepageComponent } from './features/homepage/homepage.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  // Public routes
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] }, 
-  { path: 'calendar', component: CalendarComponent },
+  
+  // Protected routes
+  { 
+    path: '', 
+    component: HomepageComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'user-profile', 
+    component: UserProfileComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'calendar', 
+    component: CalendarComponent, 
+    canActivate: [AuthGuard] 
+  },
+  
+  // Fallback route
   { path: '**', component: NotFoundComponent }
 ];
 
