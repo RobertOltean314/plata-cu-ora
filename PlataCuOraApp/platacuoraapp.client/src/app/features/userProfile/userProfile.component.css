@@ -1,29 +1,4 @@
-/* Profile Page CSS - Based on ULBS color palette */
-:root {
-  --primary-blue: #0b2f63; /* Pantone 654 C Ultramarine Blue */
-  --primary-red: #f02137; /* Pantone Red 032 C */
-  --primary-white: #ffffff; /* Pantone GRIS 1 C Pure White */
-  --blue-80: #3e578d; /* 80% of primary blue */
-  --blue-60: #6780a7; /* 60% of primary blue */
-  --blue-40: #94a9c7; /* 40% of primary blue */
-  --blue-20: #c9d3e7; /* 20% of primary blue */
-  --red-light: #f8d2d6; /* Light red for backgrounds */
-  --red-80: #f34759; /* 80% of primary red */
-  --red-60: #f56d7c; /* 60% of primary red */
-  --red-40: #f8939e; /* 40% of primary red */
-  --gray-dark: #505050; /* Dark gray for text */
-  --gray-medium: #767676; /* Medium gray for secondary text */
-  --gray-light: #f5f5f5; /* Light gray for backgrounds */
-  --success-green: #10a0b6; /* Pantone 7467 C - Facultatea de INGINERIE color */
-  --green-light: #e6f4f6; /* Light green for backgrounds */
-  --shadow-light: 0 4px 12px rgba(11, 47, 99, 0.08);
-  --shadow-medium: 0 8px 24px rgba(11, 47, 99, 0.12);
-  --shadow-hover: 0 15px 35px rgba(11, 47, 99, 0.15);
-  --font-primary: Helvetica, "Helvetica Narrow", Arial, sans-serif;
-  --border-radius: 12px;
-  --border-radius-pill: 50px;
-}
-
+/* Basic layout styles */
 .min-vh-90 {
   min-height: 90vh;
 }
@@ -46,11 +21,67 @@
   box-shadow: var(--shadow-hover) !important;
 }
 
-/* Profile header image */
-.card-img-top {
-  height: 200px;
+/* Profile header section */
+.profile-header {
+  position: relative;
+  padding: 1.5rem 0;
+  background-color: var(--primary-white);
+}
+
+/* Circular profile image container */
+.circular-profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Circular profile image */
+.circular-profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 15px rgba(11, 47, 99, 0.15);
+  border: 4px solid var(--primary-white);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.circular-profile-image img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-bottom: 4px solid var(--primary-red);
+  background-color: var(--blue-20);
+}
+
+/* Hover effect for profile image */
+.card:hover .circular-profile-image {
+  transform: scale(1.05);
+}
+
+/* Red separator line */
+.profile-separator {
+  height: 2px;
+  background-color: var(--primary-red);
+  width: 80%;
+  margin: 0.5rem auto 0;
+  position: relative;
+}
+
+/* Role badge position */
+.role-badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  z-index: 3;
+  background-color: var(--primary-blue) !important;
+  color: var(--primary-white);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--border-radius-pill);
+  box-shadow: 0 3px 8px rgba(11, 47, 99, 0.2);
+  text-transform: capitalize;
 }
 
 /* Role badge */
@@ -63,6 +94,20 @@
   box-shadow: 0 3px 8px rgba(11, 47, 99, 0.2);
   letter-spacing: 0.02em;
   text-transform: capitalize;
+  color: var(--primary-white);
+}
+
+/* Badge role variations */
+.badge[role="admin"] {
+  background-color: var(--primary-blue) !important;
+}
+
+.badge[role="user"] {
+  background-color: var(--success-green) !important;
+}
+
+.badge[role="editor"] {
+  background-color: var(--blue-60) !important;
 }
 
 /* Card body styling */
@@ -122,6 +167,11 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
+/* Button icons */
+.btn i {
+  transition: all 0.3s ease;
+}
+
 /* Change credentials button */
 .btn-outline-primary {
   color: var(--primary-blue) !important;
@@ -134,6 +184,10 @@
   color: var(--primary-blue) !important;
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(11, 47, 99, 0.15);
+}
+
+.btn-outline-primary:hover i.bi-gear {
+  transform: rotate(15deg);
 }
 
 .btn-outline-primary:active {
@@ -155,14 +209,13 @@
   box-shadow: 0 5px 15px rgba(240, 33, 55, 0.2);
 }
 
+.btn-danger:hover i.bi-box-arrow-right {
+  transform: translateX(3px);
+}
+
 .btn-danger:active {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(240, 33, 55, 0.15);
-}
-
-/* Button icons */
-.btn i {
-  font-size: 1.1rem;
 }
 
 /* Login page styling */
@@ -210,6 +263,46 @@ h2 {
   box-shadow: 0 5px 15px rgba(11, 47, 99, 0.2);
 }
 
+/* Smooth page transitions */
+.min-vh-90,
+.min-vh-100 {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error state icon pulse */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.text-warning {
+  animation: pulse 2s infinite;
+}
+
+/* User unavailable state improvements */
+.bi-exclamation-circle {
+  color: var(--primary-red) !important;
+  filter: drop-shadow(0 4px 6px rgba(240, 33, 55, 0.2));
+}
+
 /* Responsive adjustments */
 @media (max-width: 576px) {
   .fw-bold {
@@ -228,46 +321,14 @@ h2 {
     font-size: 0.8rem;
     padding: 0.4rem 1rem !important;
   }
-}
 
-/* Additional hover effect for user picture */
-.position-relative {
-  overflow: hidden;
-}
+  .circular-profile-image {
+    width: 100px;
+    height: 100px;
+  }
 
-.position-relative::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: var(--primary-red);
-  transform: scaleX(0);
-  transform-origin: bottom right;
-  transition: transform 0.5s ease;
-}
-
-.card:hover .position-relative::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
-
-/* Minimalist variation */
-.minimalist .card {
-  border-radius: 8px !important;
-  box-shadow: 0 4px 20px rgba(11, 47, 99, 0.08);
-}
-
-.minimalist .btn,
-.minimalist .rounded-pill {
-  border-radius: 6px !important;
-}
-
-.minimalist .card-img-top {
-  border-bottom: none;
-}
-
-.minimalist .position-relative::after {
-  display: none;
+  .role-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+  }
 }

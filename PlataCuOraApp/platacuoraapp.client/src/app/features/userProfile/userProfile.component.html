@@ -4,16 +4,19 @@
     <div class="row justify-content-center">
       <div class="col-md-8 col-lg-6 col-xl-4">
         <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-          <div class="position-relative">
-            <img [src]="'assets/img/' + user.role + '.jpg'" class="card-img-top" alt="{{ user.role }} image">
-            <div class="position-absolute top-0 end-0 p-3">
-              <span class="badge bg-primary">{{ user.role }}</span>
+          <div class="text-center profile-header pt-4 pb-2">
+            <div class="circular-profile-container">
+              <div class="circular-profile-image">
+                <img src="img/user-profile-icon.png" alt="{{ user.role }} profile">
+              </div>
+              <span class="badge role-badge" [attr.role]="user.role">{{ user.role }}</span>
             </div>
+            <div class="profile-separator"></div>
           </div>
 
           <div class="card-body p-4 text-center">
             <div class="mb-3">
-              <h3 class="fw-bold">{{user.name}}</h3>
+              <h3 class="fw-bold">{{user.name || 'User'}}</h3>
               <p class="text-muted mb-0">{{user.email}}</p>
             </div>
 
@@ -31,11 +34,13 @@
 
           <div class="card-body border-top pt-4">
             <div class="d-flex flex-column gap-3">
-              <a class="btn btn-outline-primary d-flex align-items-center justify-content-center" (click)="changeCredentials()">
+              <a class="btn btn-outline-primary d-flex align-items-center justify-content-center"
+                (click)="changeCredentials()">
                 <i class="bi bi-gear me-2"></i>
                 Change Credentials
               </a>
-              <button type="button" class="btn btn-danger d-flex align-items-center justify-content-center" (click)="logout()">
+              <button type="button" class="btn btn-danger d-flex align-items-center justify-content-center"
+                (click)="logout()">
                 <i class="bi bi-box-arrow-right me-2"></i>
                 Logout
               </button>
@@ -59,5 +64,4 @@
       Go to Login
     </a>
   </div>
-</div>
-}
+</div> }
