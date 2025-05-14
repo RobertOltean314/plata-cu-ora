@@ -7,6 +7,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { NotFoundComponent } from './features/notFound/notFound.component';
 import { CalendarComponent } from './features/calendar/calendar.component';
 import { HomepageComponent } from './features/homepage/homepage.component';
+import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
 
 const routes: Routes = [
   // Public routes
@@ -28,6 +29,11 @@ const routes: Routes = [
     path: 'calendar', 
     component: CalendarComponent, 
     canActivate: [AuthGuard] 
+  },
+  {
+    path: 'declaration-generator',
+    component: DeclarationGeneratorComponent,
+    canActivate: [AuthGuard]
   },
   
   // Fallback route

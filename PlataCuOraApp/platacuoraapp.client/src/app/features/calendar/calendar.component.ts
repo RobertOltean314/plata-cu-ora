@@ -4,16 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HolidayService, PublicHoliday } from '../services/holiday-service/holiday.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-
-interface CalendarDay {
-  date: Date;
-  dayOfWeek: string;
-  isWorkDay: boolean;
-  parityType: 'Par' | 'Impar' | null;
-  isHoliday: boolean;
-  holidayName?: string;
-  weekNumber?: number;
-}
+import { CalendarDay } from '../../models/calendarDay.model';
 
 @Component({
   selector: 'app-calendar',

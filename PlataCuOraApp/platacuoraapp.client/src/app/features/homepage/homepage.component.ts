@@ -1,14 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FeatureTile } from '../../models/featureTile.model';
 
-interface FeatureTile {
-  title: string;
-  description: string;
-  icon: string;
-  route: string;
-  available: boolean;   
-}
 
 @Component({
   selector: 'app-homepage',
@@ -32,8 +26,8 @@ export class HomepageComponent {
       title: 'Generator Declarații',
       description: 'Generați declarații pentru perioada selectată (în curând)',
       icon: 'bi bi-file-earmark-pdf',
-      route: '/pdf-generator',
-      available: false
+      route: '/declaration-generator',
+      available: true
     },
     {
       title: 'Profil',
