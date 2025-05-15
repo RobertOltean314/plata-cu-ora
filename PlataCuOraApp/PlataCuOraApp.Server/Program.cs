@@ -156,7 +156,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Swagger
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/swagger/index.html");
+    return Task.CompletedTask;
+});
+
+app.UseDefaultFiles();
 app.UseStaticFiles();
+app.MapFallbackToFile("/index.html");
 
 // Add a simple debug endpoint
 app.MapGet("/debug/config", (IFirebaseConfig config) => new
