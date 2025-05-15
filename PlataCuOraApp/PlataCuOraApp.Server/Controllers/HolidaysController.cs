@@ -1,34 +1,64 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PlataCuOra.Server.Domain.DTOs;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System;
 using PlataCuOraApp.Server.Domain.DTOs;
 
-namespace PlataCuOra.Server.Controllers
+namespace PlataCuOraApp.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class HolidaysController : ControllerBase
     {
-        [HttpGet("{year}")]
-        public async Task<IActionResult> GetPublicHolidays(int year)
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<HolidaysController> _logger;
+        private const string HolidayApiBaseUrl = "https://date.nager.at/api/v3/PublicHolidays";
+
+        public HolidaysController(IHttpClientFactory httpClientFactory, ILogger<HolidaysController> logger)
         {
-            using var client = new HttpClient();
-            var url = $"https://date.nager.at/api/v3/PublicHolidays/{year}/RO";
-            var response = await client.GetAsync(url);
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
-            if (!response.IsSuccessStatusCode)
-                return StatusCode(500, "Failed to fetch holidays");
+        [HttpGet("{year}")]
+        public async Task<IActionResult> GetHolidays(int year)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var url = $"{HolidayApiBaseUrl}/{year}/RO";
 
-            var json = await response.Content.ReadAsStringAsync();
-            var holidays = JsonSerializer.Deserialize<List<PublicHolidayDTO>>(json);
+                _logger.LogInformation("Fetching holidays for year {Year}", year);
+                var response = await client.GetAsync(url);
 
-            if (holidays == null || holidays.Count == 0)
-                return NotFound("No holidays found.");
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to fetch holidays. Status code: {StatusCode}", response.StatusCode);
+                    return StatusCode((int)response.StatusCode, "Failed to fetch holidays");
+                }
 
-            return Ok(holidays);
+                var json = await response.Content.ReadAsStringAsync();
+                var holidays = JsonSerializer.Deserialize<List<PublicHolidayDTO>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (holidays == null || holidays.Count == 0)
+                {
+                    _logger.LogInformation("No holidays found for year {Year}", year);
+                    return NotFound($"No holidays found for year {year}.");
+                }
+
+                return Ok(holidays);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching holidays for year {Year}", year);
+                return StatusCode(500, "An unexpected error occurred while fetching holidays");
+            }
         }
     }
 }
