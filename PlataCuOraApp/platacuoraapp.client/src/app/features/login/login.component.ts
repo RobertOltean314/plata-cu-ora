@@ -10,12 +10,14 @@ import { LoginRequest } from '../../models/login-request.model';
   styleUrls: ['./login.component.css'],
   standalone: false
 })
-export class LoginComponent implements OnInit, OnDestroy  {
+export class LoginComponent implements OnInit, OnDestroy {
   model: LoginRequest;
   private loginSubscription?: Subscription;
   loginError: string = '';
+  showPassword: boolean = false;
 
-  constructor(private userService: UserService,
+  constructor(
+    private userService: UserService,
     private router: Router
   ) {
     this.model = {
@@ -23,13 +25,21 @@ export class LoginComponent implements OnInit, OnDestroy  {
       password: ''
     };
   }
-  
+
   ngOnInit(): void {
     this.userService.user$.subscribe(user => {
       if (user) {
-        this.router.navigate(['/account']);
+        this.router.navigate(['/user-profile']);
       }
     });
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+    const input = document.getElementById('loginPassword') as HTMLInputElement;
+    if (input) {
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
   }
 
   onFormSubmit() {
@@ -37,14 +47,14 @@ export class LoginComponent implements OnInit, OnDestroy  {
       this.loginError = 'Please enter email and password';
       return;
     }
-    
+
     this.loginError = '';
     this.loginSubscription = this.userService.login(this.model).subscribe({
       next: (response) => {
         if (response.token) {
           this.userService.setLoggedInUser(response.user);
           sessionStorage.setItem('token', response.token);
-          this.router.navigate(['/account']);
+          this.router.navigate(['/user-profile']);
         }
       },
       error: (error) => {
