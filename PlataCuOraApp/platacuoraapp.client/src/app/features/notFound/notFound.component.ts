@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { Router } from "@angular/router";
 
 
 @Component({
@@ -9,4 +10,10 @@ import { Component } from "@angular/core";
 })
 
 export class NotFoundComponent {
+
+    constructor(private router: Router) { }
+
+    goToHome() {
+        this.router.navigate(["/"]);
+    }
 }
