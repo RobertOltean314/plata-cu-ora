@@ -11,6 +11,10 @@ using PlataCuOra.Server.Services.Interfaces;
 using System.IO;
 using System;
 using System.Text.Json;
+using PlataCuOraApp.Server.Repository.Implementation;
+using PlataCuOraApp.Server.Repository.Interfaces;
+using PlataCuOraApp.Server.Services.Implementation;
+using PlataCuOraApp.Server.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +87,10 @@ builder.Services.AddSingleton<IFirebaseConfig>(new FirebaseConfig
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IInfoUserService, InfoUserService>();
+builder.Services.AddScoped<IInfoUserRepository, InfoUserRepository>();
+
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
