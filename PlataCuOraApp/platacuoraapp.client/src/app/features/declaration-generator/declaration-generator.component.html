@@ -1,0 +1,96 @@
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Generare Declarație</h2>
+        </div>
+        <div class="card-content">
+            <div *ngIf="successMessage" class="alert success">
+                {{ successMessage }}
+            </div>
+            <div *ngIf="errorMessage" class="alert error">
+                {{ errorMessage }}
+            </div>
+
+            <form [formGroup]="declarationForm" (ngSubmit)="onSubmit()">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="declarant">Nume Complet Declarant*</label>
+                        <input type="text" id="declarant" formControlName="declarant" class="form-control"
+                            [ngClass]="{'invalid': isFieldInvalid('declarant')}" placeholder="Ex. Ion Popescu">
+                        <div *ngIf="isFieldRequired('declarant')" class="error-message">
+                            Numele este obligatoriu
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tip">Tip Declarație*</label>
+                            <select id="tip" formControlName="tip" class="form-control"
+                                [ngClass]="{'invalid': isFieldInvalid('tip')}">
+                                <option value="" disabled selected>Selectați tipul</option>
+                                <option *ngFor="let type of documentTypes" [value]="type">
+                                    {{type}}
+                                </option>
+                            </select>
+                            <div *ngIf="isFieldRequired('tip')" class="error-message">
+                                Tipul declarației este obligatoriu
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="universitate">Universitate*</label>
+                            <input type="text" id="universitate" formControlName="universitate" class="form-control"
+                                [ngClass]="{'invalid': isFieldInvalid('universitate')}"
+                                placeholder="Ex. Universitatea din București">
+                            <div *ngIf="isFieldRequired('universitate')" class="error-message">
+                                Universitatea este obligatorie
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="facultate">Facultate*</label>
+                            <input type="text" id="facultate" formControlName="facultate" class="form-control"
+                                [ngClass]="{'invalid': isFieldInvalid('facultate')}"
+                                placeholder="Ex. Facultatea de Informatică">
+                            <div *ngIf="isFieldRequired('facultate')" class="error-message">
+                                Facultatea este obligatorie
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="departament">Departament*</label>
+                            <input type="text" id="departament" formControlName="departament" class="form-control"
+                                [ngClass]="{'invalid': isFieldInvalid('departament')}"
+                                placeholder="Ex. Departamentul de Informatică">
+                            <div *ngIf="isFieldRequired('departament')" class="error-message">
+                                Departamentul este obligatoriu
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="directorDepartament">Director Departament</label>
+                            <input type="text" id="directorDepartament" formControlName="directorDepartament"
+                                class="form-control" placeholder="Ex. Prof. Dr. Ana Ionescu">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="decan">Decan</label>
+                            <input type="text" id="decan" formControlName="decan" class="form-control"
+                                placeholder="Ex. Prof. Dr. Mihai Dinu">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="btn btn-secondary" (click)="onCancel()">Anulează</button>
+                    <button type="button" class="btn btn-primary" (click)="onSubmit()">
+                        Genereaza Declaratie </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

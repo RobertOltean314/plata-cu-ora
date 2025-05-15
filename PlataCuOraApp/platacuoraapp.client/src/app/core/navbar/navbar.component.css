@@ -1,0 +1,271 @@
+/* Navbar Component CSS - Based on ULBS color palette */
+.navbar {
+  background-color: var(--primary-blue);
+  box-shadow: 0 2px 10px rgba(11, 47, 99, 0.07);
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: var(--font-primary);
+}
+
+/* Logo Styling */
+.navbar-brand {
+  padding: 0;
+  margin-right: 2rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+
+.navbar-logo {
+  height: 100%;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+/* Toggle Button for Mobile */
+.navbar-toggler {
+  border: none;
+  background-color: transparent;
+  color: var(--primary-blue);
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.navbar-toggler i {
+  font-size: 1.8rem;
+}
+
+/* Navigation Items */
+.navbar-nav {
+  margin-left: auto;
+}
+
+.nav-item {
+  margin: 0 0.2rem;
+  position: relative;
+}
+
+.nav-link {
+  color: var(--primary-white);
+  font-weight: 500;
+  padding: 0.65rem 1.2rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link i {
+  font-size: 1.2rem;
+  color: var(--blue-80);
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: var(--blue-20);
+  color: var(--primary-blue);
+}
+
+.nav-link:hover i {
+  color: var(--primary-blue);
+}
+
+.nav-link.active {
+  background-color: var(--primary-white);
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.nav-link.active i {
+  color: var(--primary-blue);
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background-color: var(--primary-red);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+/* Profile Dropdown */
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 50px !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-white);
+  background-size: cover;
+  background-position: center;
+  border: 2px solid var(--blue-20);
+  transition: all 0.3s ease;
+}
+
+.profile-link:hover .profile-avatar {
+  border-color: var(--primary-blue);
+}
+
+.profile-name {
+  font-weight: 500;
+  color: var(--primary-white);
+  transition: all 0.3s ease;
+}
+
+.profile-link:hover .profile-name {
+  color: var(--primary-blue);
+}
+
+/* Dropdown Menu */
+.profile-dropdown {
+  min-width: 280px;
+  padding: 0.75rem 0;
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--shadow-medium);
+  margin-top: 0.75rem;
+  border-top: 3px solid var(--primary-blue);
+}
+
+.dropdown-header {
+  font-size: 0.85rem;
+  color: var(--gray-medium);
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+}
+
+.dropdown-user-info {
+  padding: 0.5rem 1.5rem 1rem;
+}
+
+.dropdown-user-name {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-blue);
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.dropdown-user-email {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--gray-medium);
+}
+
+.dropdown-divider {
+  margin: 0.5rem 0;
+  border-color: rgba(11, 47, 99, 0.1);
+}
+
+.dropdown-item {
+  padding: 0.75rem 1.5rem;
+  color: var(--gray-dark);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item i {
+  font-size: 1.1rem;
+  color: var(--blue-80);
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--blue-20);
+  color: var(--primary-blue);
+}
+
+.dropdown-item:hover i {
+  color: var(--primary-blue);
+}
+
+.logout-item {
+  color: var(--primary-red);
+  cursor: pointer;
+}
+
+.logout-item i {
+  color: var(--primary-red);
+}
+
+.logout-item:hover {
+  background-color: var(--red-light);
+  color: var(--primary-red);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background-color: var(--primary-white);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+    box-shadow: var(--shadow-light);
+  }
+
+  .nav-item {
+    margin: 0.5rem 0;
+  }
+
+  .nav-link {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-nav .dropdown-menu {
+    position: static;
+    float: none;
+    width: 100%;
+    margin-top: 0.5rem;
+    box-shadow: none;
+    border: 1px solid var(--blue-20);
+  }
+
+  .profile-link {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .profile-name {
+    display: inline-block !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .logo-container {
+    height: 40px;
+  }
+
+  .navbar-brand {
+    margin-right: 0;
+  }
+}

@@ -1,33 +1,139 @@
-<div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
-  <div class="container" style="max-width: 300px;">
-    <h1 class="text-center mb-4">Register</h1>
-    <form #form="ngForm" (ngSubmit)="onFormSubmit()">
-      <div class="d-flex flex-column justify-content-center ">
-        <div class="mb-3">
-          <input type="text" class="form-control" id="registerName" name="registerName" placeholder="Name" required
-            [(ngModel)]="model.name" />
+<div class="d-flex justify-content-center align-items-center min-vh-100 bg-light py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-3">
+          <div class="logo-container mt-4">
+            <img src="img/ulbs-logo-normal.png" alt="Universitatea Lucian Blaga din Sibiu" class="img-fluid">
+          </div>
+
+          <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+              <h1 class="h3 fw-bold">Create Account</h1>
+            </div>
+
+            <div *ngIf="registrationError" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+              {{ registrationError }}
+              <button type="button" class="btn-close" (click)="registrationError = ''"></button>
+            </div>
+
+            <form #form="ngForm" (ngSubmit)="onFormSubmit()" novalidate>
+              <div class="mb-3">
+                <label for="registerName" class="form-label visually-hidden">Name</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-person"></i>
+                  </span>
+                  <input type="text" class="form-control" id="registerName" name="registerName" placeholder="Full Name"
+                    required minlength="3" #nameField="ngModel" [(ngModel)]="model.name" />
+                </div>
+                <div *ngIf="nameField.invalid && (nameField.dirty || nameField.touched)" class="text-danger small mt-1">
+                  <span *ngIf="nameField.errors?.['required']">Name is required</span>
+                  <span *ngIf="nameField.errors?.['minlength']">Name must be at least 3 characters</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="registerEmail" class="form-label visually-hidden">Email</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-envelope"></i>
+                  </span>
+                  <input type="email" class="form-control" id="registerEmail" name="registerEmail"
+                    placeholder="Email Address" required email #emailField="ngModel" [(ngModel)]="model.email" />
+                </div>
+                <div *ngIf="emailField.invalid && (emailField.dirty || emailField.touched)"
+                  class="text-danger small mt-1">
+                  <span *ngIf="emailField.errors?.['required']">Email is required</span>
+                  <span *ngIf="emailField.errors?.['email']">Please enter a valid email</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="registerPassword" class="form-label visually-hidden">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-lock"></i>
+                  </span>
+                  <input [type]="showPassword ? 'text' : 'password'" class="form-control" id="registerPassword"
+                    name="registerPassword" placeholder="Password" required minlength="6" #passwordField="ngModel"
+                    [(ngModel)]="model.password" />
+                  <button type="button" class="btn btn-outline-secondary" (click)="togglePassword('registerPassword')">
+                    <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                  </button>
+                </div>
+                <div *ngIf="passwordField.valid && passwordField.dirty" class="password-strength" [ngClass]="{
+                       'strength-weak': model.password.length < 8,
+                       'strength-medium': model.password.length >= 8 && model.password.length < 12,
+                       'strength-strong': model.password.length >= 12
+                     }">
+                </div>
+                <div *ngIf="passwordField.invalid && (passwordField.dirty || passwordField.touched)"
+                  class="text-danger small mt-1">
+                  <span *ngIf="passwordField.errors?.['required']">Password is required</span>
+                  <span *ngIf="passwordField.errors?.['minlength']">Password must be at least 6 characters</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="registerConfirmPassword" class="form-label visually-hidden">Confirm Password</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-lock-fill"></i>
+                  </span>
+                  <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control"
+                    id="registerConfirmPassword" name="registerConfirmPassword" placeholder="Confirm Password" required
+                    #confirmPasswordField="ngModel" [(ngModel)]="confirmPassword" />
+                  <button type="button" class="btn btn-outline-secondary"
+                    (click)="togglePassword('registerConfirmPassword')">
+                    <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                  </button>
+                </div>
+                <div
+                  *ngIf="confirmPasswordField.invalid && (confirmPasswordField.dirty || confirmPasswordField.touched)"
+                  class="text-danger small mt-1">
+                  Confirm Password is required
+                </div>
+                <div *ngIf="confirmPasswordField.valid && passwordField.valid && model.password !== confirmPassword"
+                  class="text-danger small mt-1">
+                  Passwords do not match
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="registerRole" class="form-label visually-hidden">Role</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-person-badge"></i>
+                  </span>
+                  <select class="form-select" id="registerRole" name="registerRole" required #roleField="ngModel"
+                    [(ngModel)]="model.role">
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="editor">Editor</option>
+                  </select>
+                </div>
+                <div *ngIf="roleField.invalid && (roleField.dirty || roleField.touched)" class="text-danger small mt-1">
+                  Role is required
+                </div>
+              </div>
+
+              <div class="d-grid gap-2 mb-4">
+                <button type="submit" class="btn btn-primary py-2 fw-bold"
+                  [disabled]="!form.valid || model.password !== confirmPassword">
+                  Create Account
+                </button>
+              </div>
+
+              <div class="text-center">
+                <p class="mb-0">Already have an account? <a routerLink="/login"
+                    class="text-decoration-none fw-bold">Sign In</a></p>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="mb-3">
-          <input type="text" class="form-control" id="registerEmail" name="registerEmail" placeholder="Email" required
-            [(ngModel)]="model.email" />
-        </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" id="registerPassword" name="registerPassword"
-            placeholder="Password" required [(ngModel)]="model.password" />
-        </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" id="registerConfirmPassword" name="registerConfirmPassword"
-            placeholder="Confirm Password" required [(ngModel)]="confirmPassword" />
-        </div>
-        <div class="mb-3">
-          <input type="text" class="form-control" id="registerRole" name="registerRole" placeholder="Role" required
-            [(ngModel)]="model.role" />
-        </div>
-        <div class="d-grid">
-          <button type="submit" class="btn btn-primary" [disabled]="!isValid()">Register</button>
-        </div>
-        <a href="login" class="text-center mt-3">Have an account? Login</a>
       </div>
-    </form>
+    </div>
   </div>
 </div>

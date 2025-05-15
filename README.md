@@ -63,3 +63,4 @@
 - Never commit Firebase API keys or service account credentials to public repositories
 - The .gitignore file is set up to prevent these sensitive files from being committed
 - Only example files with placeholders should be included in the repository
+>>>>>>> f203875b527f091002f1ed24a73d672c098249ea

@@ -1,0 +1,334 @@
+/* Basic layout styles */
+.min-vh-90 {
+  min-height: 90vh;
+}
+
+/* Card container styling */
+.card {
+  transition: all 0.3s ease;
+  max-width: 450px;
+  margin: 0 auto;
+  font-family: var(--font-primary);
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  background-color: var(--primary-white);
+}
+
+.card:hover {
+  transform: translateY(-7px);
+  box-shadow: var(--shadow-hover) !important;
+}
+
+/* Profile header section */
+.profile-header {
+  position: relative;
+  padding: 1.5rem 0;
+  background-color: var(--primary-white);
+}
+
+/* Circular profile image container */
+.circular-profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Circular profile image */
+.circular-profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 15px rgba(11, 47, 99, 0.15);
+  border: 4px solid var(--primary-white);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.circular-profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: var(--blue-20);
+}
+
+/* Hover effect for profile image */
+.card:hover .circular-profile-image {
+  transform: scale(1.05);
+}
+
+/* Red separator line */
+.profile-separator {
+  height: 2px;
+  background-color: var(--primary-red);
+  width: 80%;
+  margin: 0.5rem auto 0;
+  position: relative;
+}
+
+/* Role badge position */
+.role-badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  z-index: 3;
+  background-color: var(--primary-blue) !important;
+  color: var(--primary-white);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--border-radius-pill);
+  box-shadow: 0 3px 8px rgba(11, 47, 99, 0.2);
+  text-transform: capitalize;
+}
+
+/* Role badge */
+.badge {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-blue) !important;
+  border-radius: var(--border-radius-pill);
+  box-shadow: 0 3px 8px rgba(11, 47, 99, 0.2);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  color: var(--primary-white);
+}
+
+/* Badge role variations */
+.badge[role="admin"] {
+  background-color: var(--primary-blue) !important;
+}
+
+.badge[role="user"] {
+  background-color: var(--success-green) !important;
+}
+
+.badge[role="editor"] {
+  background-color: var(--blue-60) !important;
+}
+
+/* Card body styling */
+.card-body {
+  padding: 1.75rem !important;
+}
+
+/* User name styling */
+.fw-bold {
+  font-weight: 700 !important;
+  color: var(--primary-blue);
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Email styling */
+.text-muted {
+  color: var(--gray-medium) !important;
+  font-size: 1rem;
+}
+
+/* Role and Member pill badges */
+.rounded-pill {
+  border-radius: var(--border-radius-pill) !important;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.25rem !important;
+  border: 1px solid rgba(11, 47, 99, 0.15) !important;
+  color: var(--blue-80) !important;
+  background-color: rgba(201, 211, 231, 0.3);
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.rounded-pill:hover {
+  background-color: rgba(201, 211, 231, 0.5);
+  border-color: rgba(11, 47, 99, 0.25) !important;
+  transform: translateY(-2px);
+}
+
+.bi {
+  color: var(--primary-blue);
+}
+
+/* Divider styling */
+.border-top {
+  border-top: 1px solid rgba(11, 47, 99, 0.1) !important;
+}
+
+/* Button styling */
+.btn {
+  transition: all 0.3s ease;
+  border-radius: var(--border-radius-pill);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Button icons */
+.btn i {
+  transition: all 0.3s ease;
+}
+
+/* Change credentials button */
+.btn-outline-primary {
+  color: var(--primary-blue) !important;
+  border: 2px solid var(--primary-blue) !important;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--blue-20) !important;
+  color: var(--primary-blue) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(11, 47, 99, 0.15);
+}
+
+.btn-outline-primary:hover i.bi-gear {
+  transform: rotate(15deg);
+}
+
+.btn-outline-primary:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(11, 47, 99, 0.1);
+}
+
+/* Logout button */
+.btn-danger {
+  background-color: var(--primary-red) !important;
+  border: 2px solid var(--primary-red) !important;
+  color: var(--primary-white) !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--red-80) !important;
+  border-color: var(--red-80) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(240, 33, 55, 0.2);
+}
+
+.btn-danger:hover i.bi-box-arrow-right {
+  transform: translateX(3px);
+}
+
+.btn-danger:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(240, 33, 55, 0.15);
+}
+
+/* Login page styling */
+.min-vh-100 {
+  min-height: 100vh;
+  background-color: var(--gray-light);
+}
+
+.min-vh-100 .text-center {
+  background-color: var(--primary-white);
+  border-radius: var(--border-radius);
+  padding: 3rem 2rem;
+  max-width: 450px;
+  box-shadow: var(--shadow-light);
+}
+
+.text-warning {
+  color: var(--primary-red) !important;
+}
+
+.lead {
+  color: var(--gray-medium);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+h2 {
+  color: var(--primary-blue);
+  font-weight: 600;
+  font-size: 1.8rem;
+}
+
+/* Login button */
+.min-vh-100 .btn-primary {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+  padding: 0.75rem 2rem;
+  transition: all 0.3s ease;
+}
+
+.min-vh-100 .btn-primary:hover {
+  background-color: var(--blue-80) !important;
+  border-color: var(--blue-80) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(11, 47, 99, 0.2);
+}
+
+/* Smooth page transitions */
+.min-vh-90,
+.min-vh-100 {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error state icon pulse */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.text-warning {
+  animation: pulse 2s infinite;
+}
+
+/* User unavailable state improvements */
+.bi-exclamation-circle {
+  color: var(--primary-red) !important;
+  filter: drop-shadow(0 4px 6px rgba(240, 33, 55, 0.2));
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .fw-bold {
+    font-size: 1.5rem;
+  }
+
+  .card-body {
+    padding: 1.25rem !important;
+  }
+
+  .d-flex.flex-column.gap-3 {
+    gap: 1rem !important;
+  }
+
+  .rounded-pill {
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem !important;
+  }
+
+  .circular-profile-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .role-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+  }
+}
