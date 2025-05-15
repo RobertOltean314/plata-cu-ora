@@ -8,20 +8,27 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { UserProfileComponent } from './features/userProfile/userProfile.component';
 import { CommonModule } from '@angular/common';
+import { NavbarComponent } from './core/navbar/navbar.component';
+import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
+import { ReactiveFormsModule } from '@angular/forms';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     RegisterComponent,
-    UserProfileComponent
+    UserProfileComponent,
+    NavbarComponent,
+    DeclarationGeneratorComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
-    CommonModule
+    CommonModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

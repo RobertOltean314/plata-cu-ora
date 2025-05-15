@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userService.user$.subscribe(user => {
       if (user) {
-        this.router.navigate(['/user-profile']);
+        this.router.navigate(['/']);
       }
     });
   }
@@ -54,7 +54,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         if (response.token) {
           this.userService.setLoggedInUser(response.user);
           sessionStorage.setItem('token', response.token);
-          this.router.navigate(['/user-profile']);
+          this.router.navigate(['/']);
         }
       },
       error: (error) => {

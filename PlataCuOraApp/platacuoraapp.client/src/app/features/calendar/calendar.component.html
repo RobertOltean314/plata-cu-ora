@@ -1,0 +1,51 @@
+<div class="calendar-container">
+  <div class="filter-section">
+    <form [formGroup]="filterForm" class="filter-form">
+      <div class="form-group">
+        <label for="startDate">Data început:</label>
+        <input id="startDate" type="date" formControlName="startDate" class="form-control"
+          [attr.value]="filterForm.get('startDate')?.value | date:'yyyy-MM-dd'" (input)="applyDateFilter()">
+      </div>
+      <div class="form-group">
+        <label for="endDate">Data sfârșit:</label>
+        <input id="endDate" type="date" formControlName="endDate" class="form-control"
+          [attr.value]="filterForm.get('endDate')?.value | date:'yyyy-MM-dd'" (input)="applyDateFilter()">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" (click)="applyDateFilter()">
+          Aplică filtru
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetFilter()">
+          Resetează
+        </button>
+      </div>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-bordered calendar-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Zi saptamana</th>
+          <th>Zi lucratoare</th>
+          <th>Par / Impar</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (day of filteredCalendarData; track day.date) {
+        <tr [ngClass]="{'work-day': day.isWorkDay, 'weekend': !day.isWorkDay}">
+          <td>{{ formatDate(day.date) }}</td>
+          <td>{{ day.dayOfWeek }}</td>
+          <td>{{ day.isWorkDay ? 'Zi lucratoare' : '' }}</td>
+          <td>{{ day.parityType }}</td>
+        </tr>
+        }
+        @empty {
+        <tr>
+          <td colspan="4" class="text-center">Nu există date pentru perioada selectată</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
