@@ -91,6 +91,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IInfoUserService, InfoUserService>();
 builder.Services.AddScoped<IInfoUserRepository, InfoUserRepository>();
 
+builder.Services.AddScoped<IOrarUserRepository, OrarUserRepository>();
+builder.Services.AddScoped<IOrarUserService, OrarUserService>();
+
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
