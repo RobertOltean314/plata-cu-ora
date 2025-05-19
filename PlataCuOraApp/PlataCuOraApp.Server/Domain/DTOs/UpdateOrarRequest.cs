@@ -1,6 +1,4 @@
-﻿using PlataCuOraApp.Server.Domain.DTOs;
-
-namespace PlataCuOraApp.Server.Controllers
+﻿namespace PlataCuOraApp.Server.Domain.DTOs
 {
     public class UpdateOrarRequest
     {
