@@ -41,6 +41,9 @@ namespace PlataCuOraApp.Server.Domain.DTOs
         [FirestoreProperty]
         public string SaptamanaInceput { get; set; } = string.Empty;
 
+        [FirestoreProperty]
+        public int TotalOre { get; set; }
+
         public override bool Equals(object obj)
         {
             return obj is OrarUserDTO other &&
@@ -55,7 +58,8 @@ namespace PlataCuOraApp.Server.Domain.DTOs
                    Ziua == other.Ziua &&
                    ImparPar == other.ImparPar &&
                    Materia == other.Materia &&
-                   SaptamanaInceput == other.SaptamanaInceput;
+                   SaptamanaInceput == other.SaptamanaInceput &&
+                   TotalOre == other.TotalOre;
         }
     }
 }

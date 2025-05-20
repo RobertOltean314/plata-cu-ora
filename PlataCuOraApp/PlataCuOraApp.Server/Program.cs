@@ -15,6 +15,8 @@ using PlataCuOraApp.Server.Repository.Implementation;
 using PlataCuOraApp.Server.Repository.Interfaces;
 using PlataCuOraApp.Server.Services.Implementation;
 using PlataCuOraApp.Server.Services.Interfaces;
+using PlataCuOraApp.Server.Services;
+using PlataCuOraApp.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +95,11 @@ builder.Services.AddScoped<IInfoUserRepository, InfoUserRepository>();
 
 builder.Services.AddScoped<IOrarUserRepository, OrarUserRepository>();
 builder.Services.AddScoped<IOrarUserService, OrarUserService>();
+
+builder.Services.AddScoped<IParitateSaptRepository, ParitateSaptRepository>();
+builder.Services.AddScoped<IParitateSaptService, ParitateSaptService>();
+
+builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
 
 
 // Configure JWT authentication
