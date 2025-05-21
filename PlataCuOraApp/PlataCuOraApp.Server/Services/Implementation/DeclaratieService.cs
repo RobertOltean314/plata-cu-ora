@@ -13,41 +13,68 @@ public class DeclaratieService : IDeclaratieService
     private readonly IInfoUserRepository _infoUserRepo;
     private readonly IOrarUserRepository _orarUserRepo;
     private readonly IParitateSaptRepository _paritateRepo;
+    private readonly ILogger<DeclaratieService> _logger;
 
     public DeclaratieService(
         IInfoUserRepository infoUserRepo,
         IOrarUserRepository orarUserRepo,
-        IParitateSaptRepository paritateRepo)
+        IParitateSaptRepository paritateRepo,
+        ILogger<DeclaratieService> logger)
     {
         _infoUserRepo = infoUserRepo;
         _orarUserRepo = orarUserRepo;
         _paritateRepo = paritateRepo;
+        _logger = logger;
     }
 
     public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate)
     {
-        var user = await _infoUserRepo.GetUserByIdAsync(userId) ?? throw new Exception("User not found.");
-        var orar = await _orarUserRepo.GetAllAsync(userId);
-        if (orar == null || !orar.Any()) throw new Exception("No schedule exists for this user.");
+        _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
 
-        var paritati = await _paritateRepo.GetParitateSaptAsync("parId") ?? new List<ParitateSaptamanaDTO>();
+        var user = await _infoUserRepo.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogError("User not found: {UserId}", userId);
+            throw new Exception("User not found.");
+        }
+
+        var orar = await _orarUserRepo.GetAllAsync(userId);
+        if (orar == null || !orar.Any())
+        {
+            _logger.LogWarning("Schedule not found for user: {UserId}", userId);
+            throw new Exception("No schedule exists for this user.");
+        }
+
+        var paritati = await _paritateRepo.GetParitateSaptAsync(userId) ?? new List<ParitateSaptamanaDTO>();
+        if (paritati == null || !paritati.Any())
+        {
+            _logger.LogWarning("Parity data not found for user: {UserId}", userId);
+            throw new Exception("No parity data exists for this user.");
+        }
 
         var oreFiltrate = FiltreazaOre(orar, paritati, zileLucrate);
-        if (!oreFiltrate.Any()) throw new Exception("No hours found for the specified days and criteria.");
+
+        if (!oreFiltrate.Any())
+        {
+            _logger.LogWarning("No filtered hours found for user: {UserId}", userId);
+            throw new Exception("No hours found for the specified days and criteria.");
+        }
 
         var userDto = new InfoUserDTO
         {
             Declarant = user.Declarant,
             Tip = user.Tip,
             DirectorDepartament = user.DirectorDepartament,
-            Decan = user.Decan, 
+            Decan = user.Decan,
             Universitate = user.Universitate,
             Facultate = user.Facultate,
             Departament = user.Departament
         };
 
+        var pdf = GenereazaPdf(userDto, oreFiltrate, zileLucrate, paritati);
 
-        return GenereazaPdf(userDto, oreFiltrate, zileLucrate, paritati);
+        _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
+        return pdf;
     }
 
     private List<OrarUserDTO> FiltreazaOre(List<OrarUserDTO> orar, List<ParitateSaptamanaDTO> paritati, List<DateTime> zileLucrate)
@@ -340,7 +367,6 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Add(table);
     }
-
 
     private static DayOfWeek? ConvertZiTextToDayOfWeek(string zi) => zi.Trim().ToLower() switch
     {
