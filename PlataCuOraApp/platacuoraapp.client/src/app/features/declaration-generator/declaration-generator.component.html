@@ -87,10 +87,21 @@
 
                 <div class="button-container">
                     <button type="button" class="btn btn-secondary" (click)="onCancel()">Anulează</button>
-                    <button type="button" class="btn btn-primary" (click)="onSubmit()">
-                        Genereaza Declaratie </button>
+                    <button type="button" class="btn btn-primary" (click)="onSubmit()">Generează Declarație</button>
+                    <button type="button" class="btn btn-success" (click)="generatePDF()">Descarcă PDF</button>
                 </div>
             </form>
+
+            <!-- PDF Preview Section -->
+            <div id="pdf-preview" style="margin-top: 2rem; padding: 2rem; background: #f8f9fa;">
+                <h3 style="text-align:center;">{{declarationForm.value.tip || 'Tip Document'}}</h3>
+                <p><strong>Nume Declarant:</strong> {{declarationForm.value.declarant}}</p>
+                <p><strong>Universitate:</strong> {{declarationForm.value.universitate}}</p>
+                <p><strong>Facultate:</strong> {{declarationForm.value.facultate}}</p>
+                <p><strong>Departament:</strong> {{declarationForm.value.departament}}</p>
+                <p><strong>Director Departament:</strong> {{declarationForm.value.directorDepartament}}</p>
+                <p><strong>Decan:</strong> {{declarationForm.value.decan}}</p>
+            </div>
         </div>
     </div>
 </div>
