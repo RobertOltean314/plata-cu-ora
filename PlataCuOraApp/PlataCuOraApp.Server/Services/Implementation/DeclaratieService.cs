@@ -13,58 +13,67 @@ public class DeclaratieService : IDeclaratieService
     private readonly IInfoUserRepository _infoUserRepo;
     private readonly IOrarUserRepository _orarUserRepo;
     private readonly IParitateSaptRepository _paritateRepo;
+    private readonly ILogger<DeclaratieService> _logger;
 
     public DeclaratieService(
         IInfoUserRepository infoUserRepo,
         IOrarUserRepository orarUserRepo,
-        IParitateSaptRepository paritateRepo)
+        IParitateSaptRepository paritateRepo,
+        ILogger<DeclaratieService> logger)
     {
         _infoUserRepo = infoUserRepo;
         _orarUserRepo = orarUserRepo;
         _paritateRepo = paritateRepo;
+        _logger = logger;
     }
 
     public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate)
     {
-        var user = await _infoUserRepo.GetUserByIdAsync(userId) ?? throw new Exception("User not found.");
+        _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
+
+        var user = await _infoUserRepo.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogError("User not found: {UserId}", userId);
+            throw new Exception("User not found.");
+        }
+
         var orar = await _orarUserRepo.GetAllAsync(userId);
-        if (orar == null || !orar.Any()) throw new Exception("No schedule exists for this user.");
+        if (orar == null || !orar.Any())
+        {
+            _logger.LogWarning("Schedule not found for user: {UserId}", userId);
+            throw new Exception("No schedule exists for this user.");
+        }
 
-        var paritati = await _paritateRepo.GetParitateSaptAsync("parId") ?? new List<ParitateSaptamanaDTO>();
+        var paritati = await _paritateRepo.GetParitateSaptAsync(userId) ?? new List<ParitateSaptamanaDTO>();
+        if (paritati == null || !paritati.Any())
+        {
+            _logger.LogWarning("Parity data not found for user: {UserId}", userId);
+            throw new Exception("No parity data exists for this user.");
+        }
 
-        var oreFiltrate = FiltreazaOre(orar, paritati, zileLucrate);
-        if (!oreFiltrate.Any()) throw new Exception("No hours found for the specified days and criteria.");
+        var oreFiltrate = FiltreazaOreGeneric(orar, paritati, zileLucrate, (o, _) => o).ToList();
+        if (!oreFiltrate.Any())
+        {
+            _logger.LogWarning("No filtered hours found for user: {UserId}", userId);
+            throw new Exception("No hours found for the specified days and criteria.");
+        }
 
         var userDto = new InfoUserDTO
         {
             Declarant = user.Declarant,
             Tip = user.Tip,
             DirectorDepartament = user.DirectorDepartament,
-            Decan = user.Decan, 
+            Decan = user.Decan,
             Universitate = user.Universitate,
             Facultate = user.Facultate,
             Departament = user.Departament
         };
 
+        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati);
 
-        return GenereazaPdf(userDto, oreFiltrate, zileLucrate, paritati);
-    }
-
-    private List<OrarUserDTO> FiltreazaOre(List<OrarUserDTO> orar, List<ParitateSaptamanaDTO> paritati, List<DateTime> zileLucrate)
-    {
-        var filtrate = new List<OrarUserDTO>();
-        foreach (var zi in zileLucrate)
-        {
-            var ziWeekDay = zi.DayOfWeek;
-            filtrate.AddRange(orar.Where(o =>
-            {
-                if (ConvertZiTextToDayOfWeek(o.Ziua) != ziWeekDay) return false;
-                if (!string.IsNullOrEmpty(o.SaptamanaInceput) && zi < GetDataInceputSaptamana(paritati, o.SaptamanaInceput)) return false;
-                if (!string.IsNullOrEmpty(o.ImparPar) && !VerificaParitate(paritati, zi, o.ImparPar)) return false;
-                return true;
-            }));
-        }
-        return filtrate;
+        _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
+        return pdf;
     }
 
     private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
@@ -83,6 +92,28 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Close();
         return ms.ToArray();
+    }
+
+    private IEnumerable<T> FiltreazaOreGeneric<T>(
+        List<OrarUserDTO> orar,
+        List<ParitateSaptamanaDTO> paritati,
+        List<DateTime> zileLucrate,
+        Func<OrarUserDTO, DateTime, T> selector)
+    {
+        foreach (var zi in zileLucrate)
+        {
+            var ziWeekDay = zi.DayOfWeek;
+            foreach (var o in orar)
+            {
+                if (ConvertZiTextToDayOfWeek(o.Ziua) != ziWeekDay) 
+                    continue;
+                if (!string.IsNullOrEmpty(o.SaptamanaInceput) && zi < GetDataInceputSaptamana(paritati, o.SaptamanaInceput)) 
+                    continue;
+                if (!string.IsNullOrEmpty(o.ImparPar) && !VerificaParitate(paritati, zi, o.ImparPar)) 
+                    continue;
+                yield return selector(o, zi);
+            }
+        }
     }
 
     private void AdaugaHeader(Document doc, InfoUserDTO user)
@@ -212,6 +243,7 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Add(semnaturiTable);
     }
+
     private void AdaugaTabelOre(Document doc, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
     {
         var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
@@ -234,35 +266,18 @@ public class DeclaratieService : IDeclaratieService
         int totalC = 0, totalS = 0, totalLA = 0, totalP = 0;
         double totalOreCoef = 0;
 
-        var orePerZiPost = zileLucrate
-        .SelectMany(zi =>
-            ore.Where(o => ConvertZiTextToDayOfWeek(o.Ziua) == zi.DayOfWeek)
-               .Where(o =>
-               {
-                   if (!string.IsNullOrEmpty(o.SaptamanaInceput))
-                   {
-                       var dataStart = GetDataInceputSaptamana(paritati, o.SaptamanaInceput);
-                       if (dataStart == null || zi < dataStart) return false;
-                   }
-                   if (!string.IsNullOrEmpty(o.ImparPar))
-                   {
-                       if (!VerificaParitate(paritati, zi, o.ImparPar)) return false;
-                   }
-                   return true;
-               })
-               .Select(o => new
-               {
-                   Zi = zi.Date,
-                   o.NrPost,
-                   o.DenPost,
-                   o.Tip,
-                   o.Formatia,
-                   o.OreCurs,
-                   o.OreSem,
-                   o.OreLab,
-                   o.OreProi
-               })
-        )
+        var orePerZiPost = FiltreazaOreGeneric(ore, paritati, zileLucrate, (o, zi) => new
+        {
+            Zi = zi.Date,
+            o.NrPost,
+            o.DenPost,
+            o.Tip,
+            o.Formatia,
+            o.OreCurs,
+            o.OreSem,
+            o.OreLab,
+            o.OreProi
+        })
         .Distinct()
         .OrderBy(x => x.NrPost)
         .ThenBy(x => x.Zi)
@@ -274,7 +289,7 @@ public class DeclaratieService : IDeclaratieService
 
         foreach (var grup in grupuriFinale)
         {
-            var randuri = grup.ToList(); 
+            var randuri = grup.ToList();
             bool isFirst = true;
             int rowspan = randuri.Count;
 
@@ -340,7 +355,6 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Add(table);
     }
-
 
     private static DayOfWeek? ConvertZiTextToDayOfWeek(string zi) => zi.Trim().ToLower() switch
     {
