@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-declaration-generator',
@@ -74,4 +76,30 @@ export class DeclarationGeneratorComponent implements OnInit {
     const field = this.declarationForm.get(fieldName);
     return field ? field.hasError('required') && (field.dirty || field.touched) : false;
   }
+
+  // Method to generate PDF
+  generatePDF(): void {
+  if (!this.declarationForm.valid) {
+    this.errorMessage = 'Vă rugăm să completați toate câmpurile obligatorii.';
+    this.successMessage = '';
+    this.markFormGroupTouched(this.declarationForm);
+    return;
+  }
+  const element = document.getElementById('pdf-preview');
+  if (element) {
+    html2canvas(element).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4'
+      });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const docType = this.declarationForm.value.tip || 'document';
+      pdf.save(`${docType}.pdf`);
+    });
+  }
+}
 }
