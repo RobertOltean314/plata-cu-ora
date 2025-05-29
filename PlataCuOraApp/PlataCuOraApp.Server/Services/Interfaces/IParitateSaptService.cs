@@ -1,26 +1,12 @@
 ﻿using PlataCuOraApp.Server.Domain.DTO;
-using PlataCuOraApp.Server.Repositories;
-using PlataCuOraApp.Server.Services;
 
 namespace PlataCuOraApp.Server.Services
 {
-    public class ParitateSaptService : IParitateSaptService
+    public interface IParitateSaptService
     {
-        private readonly IParitateSaptRepository _repository;
-
-        public ParitateSaptService(IParitateSaptRepository repository)
-        {
-            _repository = repository;
-        }
-
-        public async Task AddOrUpdateParitateSaptAsync(string parId, List<ParitateSaptamanaDTO> saptamani)
-        {
-            await _repository.AddOrUpdateParitateSaptAsync(parId, saptamani);
-        }
-
-        public async Task<List<ParitateSaptamanaDTO>> GetParitateSaptAsync(string parId)
-        {
-            return await _repository.GetParitateSaptAsync(parId);
-        }
+        Task AddOrUpdateParitateSaptAsync(string userId, List<ParitateSaptamanaDTO> saptamani);
+        Task<List<ParitateSaptamanaDTO>> GetParitateSaptAsync(string parId);
+        Task<bool> UpdateParitateAsync(string userId, ParitateSaptamanaDTO oldEntry, ParitateSaptamanaDTO newEntry);
+        Task<bool> DeleteParitateAsync(string userId, ParitateSaptamanaDTO entry);
     }
 }
