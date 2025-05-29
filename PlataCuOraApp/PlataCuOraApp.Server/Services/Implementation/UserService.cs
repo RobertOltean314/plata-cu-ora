@@ -1,3 +1,4 @@
+﻿using FirebaseAdmin.Auth;
 using PlataCuOra.Server.Domain.DTOs;
 using PlataCuOra.Server.Domain.Entities;
 using PlataCuOra.Server.Repository.Interface;

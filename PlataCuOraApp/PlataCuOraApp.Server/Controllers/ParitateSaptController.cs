@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlataCuOraApp.Server.Domain.DTO;
 using PlataCuOraApp.Server.Services;
-using PlataCuOraApp.Server.Domain.DTO;
-using PlataCuOraApp.Server.Services;
 using PlataCuOraApp.Server.Domain.DTOs;
 
 namespace PlataCuOra.Server.Controllers

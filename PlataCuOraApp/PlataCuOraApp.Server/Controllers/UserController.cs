@@ -4,6 +4,7 @@ using PlataCuOra.Server.Repository.Interface;
 using PlataCuOra.Server.Services.Interfaces;
 using PlataCuOraApp.Server.Domain.DTOs;
 using System.Threading.Tasks;
+
 namespace PlataCuOra.Server.Controllers
 {
     [ApiController]
@@ -55,5 +56,22 @@ namespace PlataCuOra.Server.Controllers
             var isValid = await _authService.VerifyTokenAsync(request.Token);
             return Ok(new { valid = isValid });
         }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> LoginWithGoogleAsync([FromBody] string idToken)
+        {
+            var (success, token, user, error) = await _authService.LoginWithGoogleAsync(idToken);
+
+            if (!success)
+                return Unauthorized(new { message = error });
+
+            return Ok(new
+            {
+                message = "Google login successful.",
+                token,
+                user
+            });
+        }
+
     }
 }
