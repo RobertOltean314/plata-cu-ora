@@ -33,30 +33,25 @@ public class DeclaratieService : IDeclaratieService
 
         var user = await _infoUserRepo.GetUserByIdAsync(userId);
         if (user == null)
-        {
-            _logger.LogError("User not found: {UserId}", userId);
             throw new Exception("User not found.");
-        }
 
         var orar = await _orarUserRepo.GetAllAsync(userId);
         if (orar == null || !orar.Any())
-        {
-            _logger.LogWarning("Schedule not found for user: {UserId}", userId);
             throw new Exception("No schedule exists for this user.");
-        }
 
         var paritati = await _paritateRepo.GetParitateSaptAsync(userId) ?? new List<ParitateSaptamanaDTO>();
         if (paritati == null || !paritati.Any())
-        {
-            _logger.LogWarning("Parity data not found for user: {UserId}", userId);
             throw new Exception("No parity data exists for this user.");
-        }
 
         var oreFiltrate = FiltreazaOreGeneric(orar, paritati, zileLucrate, (o, _) => o).ToList();
         if (!oreFiltrate.Any())
-        {
-            _logger.LogWarning("No filtered hours found for user: {UserId}", userId);
             throw new Exception("No hours found for the specified days and criteria.");
+
+        _logger.LogInformation("Filtrated schedule entries:");
+        foreach (var o in oreFiltrate)
+        {
+            _logger.LogInformation("Ziua: {Zi}, NrPost: {NrPost}, DenPost: {DenPost}, Tip: {Tip}, C: {C}, S: {S}, L: {L}, P: {P}",
+                o.Ziua, o.NrPost, o.DenPost, o.Tip, o.OreCurs, o.OreSem, o.OreLab, o.OreProi);
         }
 
         var userDto = new InfoUserDTO
@@ -95,26 +90,131 @@ public class DeclaratieService : IDeclaratieService
     }
 
     private IEnumerable<T> FiltreazaOreGeneric<T>(
-        List<OrarUserDTO> orar,
-        List<ParitateSaptamanaDTO> paritati,
-        List<DateTime> zileLucrate,
-        Func<OrarUserDTO, DateTime, T> selector)
+    List<OrarUserDTO> orar,
+    List<ParitateSaptamanaDTO> paritati,
+    List<DateTime> zileLucrateInput,
+    Func<OrarUserDTO, DateTime, T> selector)
     {
+        var zileLucrate = zileLucrateInput.OrderBy(z => z).ToList(); // asigură ordine cronologică
+        var oreConsumatGlobal = new Dictionary<(int NrPost, string Formatia, string Tip, string SaptInceput), int>();
+        var orePeZi = new Dictionary<DateTime, int>();
+        var zileCuOre = new HashSet<DateTime>();
+
         foreach (var zi in zileLucrate)
         {
-            var ziWeekDay = zi.DayOfWeek;
-            foreach (var o in orar)
+            var ziSaptamana = zi.DayOfWeek;
+
+            var orarPeZi = orar.Where(o =>
+                ConvertZiTextToDayOfWeek(o.Ziua) == ziSaptamana &&
+                !string.IsNullOrWhiteSpace(o.Formatia) &&
+                new[] { o.OreCurs, o.OreSem, o.OreLab, o.OreProi }.Count(x => x > 0) == 1 &&
+                (string.IsNullOrWhiteSpace(o.ImparPar) || VerificaParitate(paritati, zi, o.ImparPar))
+            ).ToList();
+
+            // --- 1. CAZURI SPECIALE
+            var grupuriSpeciale = orarPeZi
+                .Where(o => !string.IsNullOrWhiteSpace(o.SaptamanaInceput) && o.TotalOre > 0)
+                .GroupBy(o => new { o.NrPost, o.Formatia, o.Tip, o.SaptamanaInceput, o.ImparPar });
+
+            foreach (var grup in grupuriSpeciale)
             {
-                if (ConvertZiTextToDayOfWeek(o.Ziua) != ziWeekDay) 
+                if (!int.TryParse(grup.Key.SaptamanaInceput.Replace("S", ""), out int saptInceput))
                     continue;
-                if (!string.IsNullOrEmpty(o.SaptamanaInceput) && zi < GetDataInceputSaptamana(paritati, o.SaptamanaInceput)) 
+
+                var saptCurenta = AflaNrSaptamana(zi, paritati);
+                if (!saptCurenta.HasValue || saptCurenta.Value < saptInceput)
+                {
+                    _logger.LogWarning("⛔ {Zi}: prea devreme pentru {SInceput} - {Post}-{Formatia}-{Tip}", zi.ToShortDateString(), saptInceput, grup.Key.NrPost, grup.Key.Formatia, grup.Key.Tip);
                     continue;
-                if (!string.IsNullOrEmpty(o.ImparPar) && !VerificaParitate(paritati, zi, o.ImparPar)) 
+                }
+
+                var keyGlobal = (grup.Key.NrPost, grup.Key.Formatia, grup.Key.Tip, grup.Key.SaptamanaInceput);
+                oreConsumatGlobal.TryGetValue(keyGlobal, out int dejaConsumate);
+
+                int totalDisponibil = grup.First().TotalOre;
+                int totalOreFiziceInGrup = grup.Sum(o => o.OreCurs + o.OreSem + o.OreLab + o.OreProi);
+                if (totalOreFiziceInGrup == 0)
                     continue;
+
+                int oreRamase = CalculeazaOreRamaseInSaptamana(
+                    saptCurenta.Value, saptInceput, grup.Key.ImparPar, totalDisponibil, totalOreFiziceInGrup, 10);
+
+                if (oreRamase <= 0)
+                {
+                    _logger.LogWarning("⛔ {Zi}: oreRamase=0 în {Post}-{Formatia}-{Tip}, Sapt={S}", zi.ToShortDateString(), grup.Key.NrPost, grup.Key.Formatia, grup.Key.Tip, saptCurenta);
+                    continue;
+                }
+
+                int efectivRamase = Math.Min(oreRamase, totalDisponibil - dejaConsumate);
+                if (efectivRamase <= 0)
+                {
+                    _logger.LogWarning("⚠️ {Zi}: dejaConsumate={Cons} ≥ Total={Total} pentru {Post}-{Tip}", zi.ToShortDateString(), dejaConsumate, totalDisponibil, grup.Key.NrPost, grup.Key.Tip);
+                    continue;
+                }
+
+                int alocat = 0;
+
+                foreach (var o in grup)
+                {
+                    int oreFizice = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
+                    if (oreFizice == 0 || alocat >= efectivRamase)
+                        continue;
+
+                    int alocHere = Math.Min(oreFizice, efectivRamase - alocat);
+
+                    orePeZi.TryGetValue(zi.Date, out int totalInZi);
+                    if (totalInZi + alocHere > 12)
+                    {
+                        _logger.LogWarning("🚫 {Zi}: depășire 12 ore. Ignorat {Post}-{Tip}", zi.ToShortDateString(), o.NrPost, o.Tip);
+                        continue;
+                    }
+
+                    // Trunchiază
+                    if (o.OreCurs > 0) o.OreCurs = alocHere;
+                    if (o.OreSem > 0) o.OreSem = alocHere;
+                    if (o.OreLab > 0) o.OreLab = alocHere;
+                    if (o.OreProi > 0) o.OreProi = alocHere;
+
+                    orePeZi[zi.Date] = totalInZi + alocHere;
+                    zileCuOre.Add(zi.Date);
+
+                    _logger.LogInformation("✅ {Zi}: alocate {Aloc} ore pentru {Post}-{Tip}-{Formatia}", zi.ToShortDateString(), alocHere, o.NrPost, o.Tip, o.Formatia);
+
+                    yield return selector(o, zi);
+                    alocat += alocHere;
+                }
+
+                oreConsumatGlobal[keyGlobal] = dejaConsumate + alocat;
+            }
+
+            // --- 2. CAZURI NORMALE
+            var normale = orarPeZi
+                .Where(o => string.IsNullOrWhiteSpace(o.SaptamanaInceput) || o.TotalOre <= 0);
+
+            foreach (var o in normale)
+            {
+                int oreFizice = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
+                if (oreFizice == 0)
+                    continue;
+
+                orePeZi.TryGetValue(zi.Date, out int totalInZi);
+                if (totalInZi + oreFizice > 12)
+                    continue;
+
+                orePeZi[zi.Date] = totalInZi + oreFizice;
+                zileCuOre.Add(zi.Date);
+
                 yield return selector(o, zi);
+            }
+
+            // --- VERIFICARE FINALĂ
+            if (!zileCuOre.Contains(zi.Date))
+            {
+                _logger.LogWarning("⚠️ Nicio linie procesată pentru ziua {Zi} ({ZiuaSaptamanii})", zi.ToString("dd.MM.yyyy"), zi.DayOfWeek);
             }
         }
     }
+
 
     private void AdaugaHeader(Document doc, InfoUserDTO user)
     {
@@ -320,6 +420,9 @@ public class DeclaratieService : IDeclaratieService
                 totalP += p;
                 totalOreCoef += oreTotal;
 
+                _logger.LogInformation("PDF Row -> Zi: {Zi}, Tip: {Tip}, Coef: {Coef}, C: {C}, S: {S}, L: {L}, P: {P}, TotalOreCoef: {TotalOreCoef}, Formatia: {Formatia}",
+                rand.Zi.ToString("dd.MM.yyyy"), rand.Tip, coef, c, s, la, p, oreTotal, rand.Formatia);
+
                 if (isFirst)
                 {
                     table.AddCell(new PdfPCell(new Phrase(grup.Key, fontNormal))
@@ -368,12 +471,6 @@ public class DeclaratieService : IDeclaratieService
         _ => null
     };
 
-    private static DateTime? GetDataInceputSaptamana(List<ParitateSaptamanaDTO> paritati, string sapt)
-    {
-        var p = paritati.FirstOrDefault(x => x.Sapt == sapt);
-        return DateTime.TryParse(p?.Data, out var dt) ? dt : null;
-    }
-
     private static bool VerificaParitate(List<ParitateSaptamanaDTO> paritati, DateTime zi, string imparPar)
     {
         foreach (var p in paritati)
@@ -383,5 +480,60 @@ public class DeclaratieService : IDeclaratieService
                 return true;
         }
         return false;
+    }
+
+    private static int CalculeazaOreRamaseInSaptamana(
+    int saptCurenta,
+    int saptInceput,
+    string paritate,
+    int totalOre,
+    int oreOrar,
+    int maxSaptamani = 10)
+    {
+        if (saptCurenta < saptInceput)
+            return -1;
+
+        int diferenta = saptCurenta - saptInceput;
+        int saptamaniTrecute;
+
+        if (string.IsNullOrWhiteSpace(paritate))
+        {
+            saptamaniTrecute = diferenta;
+        }
+        else
+        {
+            saptamaniTrecute = diferenta / 2;
+
+            if (diferenta % 2 == 1)
+            {
+                if ((paritate.Equals("Par", StringComparison.OrdinalIgnoreCase) && saptInceput % 2 == 0) ||
+                    (paritate.Equals("Impar", StringComparison.OrdinalIgnoreCase) && saptInceput % 2 == 1))
+                {
+                    saptamaniTrecute++;
+                }
+            }
+        }
+
+        if (saptamaniTrecute >= maxSaptamani)
+            return -1;
+
+        int oreRamase = totalOre - saptamaniTrecute * oreOrar;
+        return Math.Min(oreRamase, oreOrar);
+    }
+
+    private static int? AflaNrSaptamana(DateTime zi, List<ParitateSaptamanaDTO> paritati)
+    {
+        for (int i = 0; i < paritati.Count; i++)
+        {
+            if (DateTime.TryParse(paritati[i].Data, out var dataStart))
+            {
+                if (zi >= dataStart && zi < dataStart.AddDays(7))
+                {
+                    if (int.TryParse(paritati[i].Sapt.Replace("S", ""), out var sapt))
+                        return sapt;
+                }
+            }
+        }
+        return null;
     }
 }

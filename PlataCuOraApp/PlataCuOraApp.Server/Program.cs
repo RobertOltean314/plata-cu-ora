@@ -17,8 +17,11 @@ using PlataCuOraApp.Server.Services.Implementation;
 using PlataCuOraApp.Server.Services.Interfaces;
 using PlataCuOraApp.Server.Services;
 using PlataCuOraApp.Server.Repositories;
+using QuestPDF;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 // Set up logging
 builder.Logging.ClearProviders();
