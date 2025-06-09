@@ -52,6 +52,11 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#userInfoModal">
+                                    <i class="bi bi-person-lines-fill"></i> User Info
+                                </button>
+                            </li>
                             <li><a class="dropdown-item" routerLink="/user-profile">
                                     <i class="bi bi-person"></i> Profile
                                 </a></li>
@@ -84,3 +89,32 @@
         </div>
     </div>
 </nav>
+
+<!-- User Info Modal -->
+ <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form (ngSubmit)="saveUserInfo()">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userInfoModalLabel">User Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div *ngIf="successMessage" class="alert alert-success py-1 mb-2">{{ successMessage }}</div>
+            <div *ngIf="errorMessage" class="alert alert-danger py-1 mb-2">{{ errorMessage }}</div>
+          <input [(ngModel)]="userInfo.declarant" name="declarant" placeholder="Declarant" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.tip" name="tip" placeholder="Tip" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.directorDepartament" name="directorDepartament" placeholder="Director Departament" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.decan" name="decan" placeholder="Decan" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.universitate" name="universitate" placeholder="Universitate" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.facultate" name="facultate" placeholder="Facultate" class="form-control mb-2"/>
+          <input [(ngModel)]="userInfo.departament" name="departament" placeholder="Departament" class="form-control mb-2"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Info</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
