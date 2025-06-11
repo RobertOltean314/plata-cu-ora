@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { UserService } from '../services/user-services/user.service';
 import { LoginRequest } from '../../models/login-request.model';
+import { AuthService } from '../../core/services/auth.service'; 
 
 @Component({
   selector: 'app-login',
@@ -15,9 +16,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   private loginSubscription?: Subscription;
   loginError: string = '';
   showPassword: boolean = false;
+  isGoogleLoading: boolean = false; // Add this
 
   constructor(
     private userService: UserService,
+    private authService: AuthService, // Add this
     private router: Router
   ) {
     this.model = {
@@ -61,6 +64,23 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loginError = error.error?.message || 'Login failed. Please check your credentials.';
       }
     });
+  }
+
+  // Add this method for Google login
+  async signInWithGoogle(): Promise<void> {
+    this.isGoogleLoading = true;
+    this.loginError = '';
+
+    try {
+      await this.authService.signInWithGoogle();
+      // The AuthService handles the backend call and user state
+      // Just navigate to home after successful authentication
+      this.router.navigate(['/']);
+    } catch (error: any) {
+      this.loginError = error.message || 'Google sign-in failed. Please try again.';
+    } finally {
+      this.isGoogleLoading = false;
+    }
   }
 
   ngOnDestroy(): void {

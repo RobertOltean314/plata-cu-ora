@@ -22,6 +22,7 @@
     "@angular/router": "^19.2.0",
     "@ng-bootstrap/ng-bootstrap": "^18.0.0",
     "bootstrap-icons": "^1.13.1",
+    "firebase": "^11.9.1",
     "jest-editor-support": "*",
     "run-script-os": "*",
     "rxjs": "~7.8.0",
