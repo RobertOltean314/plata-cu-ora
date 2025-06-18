@@ -5,12 +5,12 @@ using PlataCuOraApp.Server.Repository.Interfaces;
 
 namespace PlataCuOraApp.Server.Repositories
 {
-    public class ParitateSaptRepository : IParitateSaptRepository
+    public class WeekParityRepository : IWeekParityRepository
     {
         private readonly FirestoreDb _firestore;
-        private readonly ILogger<ParitateSaptRepository> _logger;
+        private readonly ILogger<WeekParityRepository> _logger;
 
-        public ParitateSaptRepository(FirestoreDb firestore, ILogger<ParitateSaptRepository> logger)
+        public WeekParityRepository(FirestoreDb firestore, ILogger<WeekParityRepository> logger)
         {
             _firestore = firestore;
             _logger = logger;
@@ -18,7 +18,7 @@ namespace PlataCuOraApp.Server.Repositories
 
         private const string COLLECTION = "paritateSapt";
 
-        public async Task AddOrUpdateParitateSaptAsync(string userId, List<ParitateSaptamanaDTO> saptamani)
+        public async Task AddOrUpdateParitateSaptAsync(string userId, List<WeekParityDTO> saptamani)
         {
             _logger.LogInformation("Adding or updating parity weeks for userId={userId}", userId);
             var docRef = _firestore.Collection(COLLECTION).Document(userId);
@@ -39,7 +39,7 @@ namespace PlataCuOraApp.Server.Repositories
             _logger.LogInformation("Successfully added or updated parity weeks for userId={userId}", userId);
         }
 
-        public async Task<List<ParitateSaptamanaDTO>> GetParitateSaptAsync(string userId)
+        public async Task<List<WeekParityDTO>> GetWeekParityAsync(string userId)
         {
             _logger.LogInformation("Fetching parity weeks for userId={userId}", userId);
             var docRef = _firestore.Collection(COLLECTION).Document(userId);
@@ -48,12 +48,12 @@ namespace PlataCuOraApp.Server.Repositories
             if (!snapshot.Exists || !snapshot.ContainsField("saptamani"))
             {
                 _logger.LogWarning("No parity data found for userId={userId}", userId);
-                return new List<ParitateSaptamanaDTO>();
+                return new List<WeekParityDTO>();
             }
 
             var saptamaniRaw = snapshot.GetValue<List<Dictionary<string, object>>>("saptamani");
 
-            var result = saptamaniRaw.Select(s => new ParitateSaptamanaDTO
+            var result = saptamaniRaw.Select(s => new WeekParityDTO
             {
                 Sapt = s.ContainsKey("sapt") ? s["sapt"].ToString() : string.Empty,
                 Data = s.ContainsKey("data") ? s["data"].ToString() : string.Empty,
@@ -64,10 +64,10 @@ namespace PlataCuOraApp.Server.Repositories
             return result;
         }
 
-        public async Task<bool> UpdateParitateAsync(string userId, ParitateSaptamanaDTO oldEntry, ParitateSaptamanaDTO newEntry)
+        public async Task<bool> UpdateParitateAsync(string userId, WeekParityDTO oldEntry, WeekParityDTO newEntry)
         {
             _logger.LogInformation("Updating parity week for userId={userId}", userId);
-            var list = await GetParitateSaptAsync(userId);
+            var list = await GetWeekParityAsync(userId);
             if (!list.RemoveAll(x => x.Sapt == oldEntry.Sapt && x.Data == oldEntry.Data && x.Paritate == oldEntry.Paritate).Equals(1))
             {
                 _logger.LogWarning("Old parity entry not found for update: {OldEntry}", oldEntry);
@@ -80,10 +80,10 @@ namespace PlataCuOraApp.Server.Repositories
             return true;
         }
 
-        public async Task<bool> DeleteParitateAsync(string userId, ParitateSaptamanaDTO entry)
+        public async Task<bool> DeleteParitateAsync(string userId, WeekParityDTO entry)
         {
             _logger.LogInformation("Deleting parity entry for userId={userId}", userId);
-            var list = await GetParitateSaptAsync(userId);
+            var list = await GetWeekParityAsync(userId);
             if (!list.RemoveAll(x => x.Sapt == entry.Sapt && x.Data == entry.Data && x.Paritate == entry.Paritate).Equals(1))
             {
                 _logger.LogWarning("Entry to delete not found for userId={userId}: {Entry}", userId, entry);

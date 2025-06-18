@@ -5,19 +5,19 @@ using PlataCuOraApp.Server.Domain.DTOs;
 using PlataCuOraApp.Server.Repository.Interfaces;
 using System.Text.Json;
 
-public class OrarUserRepository : IOrarUserRepository
+public class UserScheduleRepository : IUserScheduleRepository
 {
     private readonly FirestoreDb _db;
-    private readonly ILogger<OrarUserRepository> _logger;
+    private readonly ILogger<UserScheduleRepository> _logger;
     private const string COLLECTION = "orarUser";
 
-    public OrarUserRepository(FirestoreDb db, ILogger<OrarUserRepository> logger)
+    public UserScheduleRepository(FirestoreDb db, ILogger<UserScheduleRepository> logger)
     {
         _db = db;
         _logger = logger;
     }
 
-    public async Task<List<OrarUserDTO>?> GetAllAsync(string userId)
+    public async Task<List<UserScheduleDTO>?> GetAllAsync(string userId)
     {
         _logger.LogInformation("Retrieving schedule for user: {UserId}", userId);
         var doc = await _db.Collection(COLLECTION).Document(userId).GetSnapshotAsync();
@@ -30,9 +30,9 @@ public class OrarUserRepository : IOrarUserRepository
         if (doc.TryGetValue<object>("orar", out var data))
         {
             var json = JsonSerializer.Serialize(data);
-            var orarList = JsonSerializer.Deserialize<List<OrarUserDTO>>(json);
+            var userScheduleList = JsonSerializer.Deserialize<List<UserScheduleDTO>>(json);
             _logger.LogInformation("Successfully retrieved schedule for user: {UserId}", userId);
-            return orarList;
+            return userScheduleList;
         }
         else
         {
@@ -41,18 +41,18 @@ public class OrarUserRepository : IOrarUserRepository
         }
     }
 
-    public async Task<bool> AddAsync(string userId, OrarUserDTO entry)
+    public async Task<bool> AddAsync(string userId, UserScheduleDTO entry)
     {
         _logger.LogInformation("Attempting to add schedule entry for user: {UserId}", userId);
         var docRef = _db.Collection(COLLECTION).Document(userId);
         var doc = await docRef.GetSnapshotAsync();
 
-        List<OrarUserDTO> list = new();
+        List<UserScheduleDTO> list = new();
 
         if (doc.Exists && doc.TryGetValue<object>("orar", out var data))
         {
             var json = JsonSerializer.Serialize(data);
-            list = JsonSerializer.Deserialize<List<OrarUserDTO>>(json) ?? new();
+            list = JsonSerializer.Deserialize<List<UserScheduleDTO>>(json) ?? new();
 
             if (list.Any(e => JsonSerializer.Serialize(e) == JsonSerializer.Serialize(entry)))
             {
@@ -74,7 +74,7 @@ public class OrarUserRepository : IOrarUserRepository
         return true;
     }
 
-    public async Task<bool> UpdateAsync(string userId, OrarUserDTO oldEntry, OrarUserDTO newEntry)
+    public async Task<bool> UpdateAsync(string userId, UserScheduleDTO oldEntry, UserScheduleDTO newEntry)
     {
         _logger.LogInformation("Updating schedule entry for user: {UserId}", userId);
         var list = await GetAllAsync(userId);
@@ -90,7 +90,7 @@ public class OrarUserRepository : IOrarUserRepository
         return true;
     }
 
-    public async Task<bool> DeleteAsync(string userId, OrarUserDTO entry)
+    public async Task<bool> DeleteAsync(string userId, UserScheduleDTO entry)
     {
         _logger.LogInformation("Deleting schedule entry for user: {UserId}", userId);
         var list = await GetAllAsync(userId);

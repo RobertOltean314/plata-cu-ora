@@ -3,7 +3,7 @@
 namespace PlataCuOraApp.Server.Domain.Entities
 {
     [FirestoreData]
-    public class InfoUser
+    public class UserInformation
     {
         [FirestoreDocumentId]  
         public string Id { get; set; }

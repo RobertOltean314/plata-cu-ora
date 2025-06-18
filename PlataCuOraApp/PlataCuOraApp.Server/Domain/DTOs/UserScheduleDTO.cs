@@ -3,7 +3,7 @@
 namespace PlataCuOraApp.Server.Domain.DTOs
 {
     [FirestoreData]
-    public class OrarUserDTO
+    public class UserScheduleDTO
     {
         [FirestoreProperty]
         public int NrPost { get; set; }
@@ -46,7 +46,7 @@ namespace PlataCuOraApp.Server.Domain.DTOs
 
         public override bool Equals(object obj)
         {
-            return obj is OrarUserDTO other &&
+            return obj is UserScheduleDTO other &&
                    NrPost == other.NrPost &&
                    DenPost == other.DenPost &&
                    OreCurs == other.OreCurs &&

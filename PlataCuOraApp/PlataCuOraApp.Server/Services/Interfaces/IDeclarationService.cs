@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace PlataCuOraApp.Server.Services
 {
-    public interface IDeclaratieService
+    public interface IDeclarationService
     {
-        Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate);
+        Task<byte[]> GenerateDeclarationAsync(string userId, List<DateTime> workedDays);
     }
 }

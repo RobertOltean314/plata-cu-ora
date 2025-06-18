@@ -8,12 +8,12 @@ namespace PlataCuOraApp.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class InfoUserController : ControllerBase
+    public class UserInformationController : ControllerBase
     {
-        private readonly IInfoUserService _service;
-        private readonly ILogger<InfoUserController> _logger;
+        private readonly IUserInformationService _service;
+        private readonly ILogger<UserInformationController> _logger;
 
-        public InfoUserController(IInfoUserService service, ILogger<InfoUserController> logger)
+        public UserInformationController(IUserInformationService service, ILogger<UserInformationController> logger)
         {
             _service = service;
             _logger = logger;
@@ -28,7 +28,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("add/{userId}")]
-        public async Task<IActionResult> Add(string userId, [FromBody] InfoUserDTO info)
+        public async Task<IActionResult> Add(string userId, [FromBody] UserInformationDTO info)
         {
             _logger.LogInformation($"POST add info requested for user {userId}");
             var (success, error) = await _service.AddInfoAsync(userId, info);
@@ -60,7 +60,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpDelete("delete/{userId}")]
-        public async Task<IActionResult> Delete(string userId, [FromBody] InfoUserDTO info)
+        public async Task<IActionResult> Delete(string userId, [FromBody] UserInformationDTO info)
         {
             _logger.LogInformation($"DELETE info requested for user {userId}");
             var (success, error) = await _service.DeleteInfoAsync(userId, info);
@@ -76,7 +76,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("set-active/{userId}")]
-        public async Task<IActionResult> SetActive(string userId, [FromBody] InfoUserDTO info)
+        public async Task<IActionResult> SetActive(string userId, [FromBody] UserInformationDTO info)
         {
             _logger.LogInformation($"POST set-active info requested for user {userId}");
             var (success, error) = await _service.SetActiveAsync(userId, info);
@@ -92,7 +92,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("unset-active/{userId}")]
-        public async Task<IActionResult> UnsetActive(string userId, [FromBody] InfoUserDTO info)
+        public async Task<IActionResult> UnsetActive(string userId, [FromBody] UserInformationDTO info)
         {
             _logger.LogInformation($"POST unset-active info requested for user {userId}");
             var (success, error) = await _service.UnsetActiveAsync(userId, info);
@@ -108,7 +108,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("{userId}/add-active-info")]
-        public async Task<ActionResult<InfoUserDTO?>> AddActiveInfoToDb(string userId)
+        public async Task<ActionResult<UserInformationDTO?>> AddActiveInfoToDb(string userId)
         {
             _logger.LogInformation($"POST add-active-info requested for user {userId}");
             var result = await _service.AddActiveInfoToDbAsync(userId);
@@ -122,7 +122,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpGet("{userId}/info-user")]
-        public async Task<ActionResult<InfoUserDTO?>> GetInfoUserFromDb(string userId)
+        public async Task<ActionResult<UserInformationDTO?>> GetInfoUserFromDb(string userId)
         {
             _logger.LogInformation($"GET info-user requested for user {userId}");
             var result = await _service.GetInfoUserFromDbAsync(userId);
@@ -136,7 +136,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpGet("{userId}/active-info")]
-        public async Task<ActionResult<InfoUserDTO?>> GetActiveInfoAsync(string userId)
+        public async Task<ActionResult<UserInformationDTO?>> GetActiveInfoAsync(string userId)
         {
             _logger.LogInformation($"GET active-info requested for user {userId}");
             var result = await _service.GetActiveInfoAsync(userId);

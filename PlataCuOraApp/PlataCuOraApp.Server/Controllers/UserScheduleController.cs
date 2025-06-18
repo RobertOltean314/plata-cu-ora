@@ -6,11 +6,11 @@ namespace PlataCuOraApp.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrarUserController : ControllerBase
+    public class UserScheduleController : ControllerBase
     {
-        private readonly IOrarUserService _service;
+        private readonly IUserScheduleService _service;
 
-        public OrarUserController(IOrarUserService service) => _service = service;
+        public UserScheduleController(IUserScheduleService service) => _service = service;
 
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetAll(string userId)
@@ -22,7 +22,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("{userId}")]
-        public async Task<IActionResult> Add(string userId, [FromBody] OrarUserDTO entry)
+        public async Task<IActionResult> Add(string userId, [FromBody] UserScheduleDTO entry)
         {
             var msg = await _service.AddAsync(userId, entry);
             return msg.Contains("already exists")
@@ -31,7 +31,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPut("{userId}")]
-        public async Task<IActionResult> Update(string userId, [FromBody] UpdateOrarRequest request)
+        public async Task<IActionResult> Update(string userId, [FromBody] UpdateScheduleRequest request)
         {
             var msg = await _service.UpdateAsync(userId, request.OldEntry, request.NewEntry);
             return msg.Contains("not found")
@@ -40,7 +40,7 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpDelete("{userId}")]
-        public async Task<IActionResult> Delete(string userId, [FromBody] OrarUserDTO entry)
+        public async Task<IActionResult> Delete(string userId, [FromBody] UserScheduleDTO entry)
         {
             var msg = await _service.DeleteAsync(userId, entry);
             return msg.Contains("not found")

@@ -3,7 +3,7 @@
 namespace PlataCuOraApp.Server.Domain.DTO
 {
     [FirestoreData]
-    public class ParitateSaptamanaDTO
+    public class WeekParityDTO
     {
 
         [FirestoreProperty("sapt")]

@@ -2,9 +2,9 @@
 
 namespace PlataCuOraApp.Server.Domain.Entities
 {
-    public class OrarUser
+    public class UserSchedule
     {
         public string Id { get; set; }
-        public List<OrarUserDTO> Orar { get; set; } = new();
+        public List<UserScheduleDTO> Orar { get; set; } = new();
     }
 }

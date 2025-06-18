@@ -2,7 +2,7 @@
 {
     public class UpdateInfoRequestDTO
     {
-        public InfoUserDTO Old { get; set; }
-        public InfoUserDTO New { get; set; }
+        public UserInformationDTO Old { get; set; }
+        public UserInformationDTO New { get; set; }
     }
 }

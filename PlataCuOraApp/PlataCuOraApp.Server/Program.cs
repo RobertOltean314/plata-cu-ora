@@ -90,16 +90,16 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddScoped<IInfoUserService, InfoUserService>();
-builder.Services.AddScoped<IInfoUserRepository, InfoUserRepository>();
+builder.Services.AddScoped<IUserInformationService, UserInformationService>();
+builder.Services.AddScoped<IUserInformationRepository, UserInformationRepository>();
 
-builder.Services.AddScoped<IOrarUserRepository, OrarUserRepository>();
-builder.Services.AddScoped<IOrarUserService, OrarUserService>();
+builder.Services.AddScoped<IUserScheduleRepository, UserScheduleRepository>();
+builder.Services.AddScoped<IUserScheduleService, UserScheduleService>();
 
-builder.Services.AddScoped<IParitateSaptRepository, ParitateSaptRepository>();
-builder.Services.AddScoped<IParitateSaptService, ParitateSaptService>();
+builder.Services.AddScoped<IWeekParityRepository, WeekParityRepository>();
+builder.Services.AddScoped<IWeekParityService, WeekParityService>();
 
-builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
+builder.Services.AddScoped<IDeclarationService, DeclarationService>();
 
 
 // Configure JWT authentication

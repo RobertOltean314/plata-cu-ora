@@ -8,46 +8,46 @@ using PlataCuOraApp.Server.Repository.Interfaces;
 using PlataCuOraApp.Server.Services;
 using static iTextSharp.text.pdf.AcroFields;
 
-public class DeclaratieService : IDeclaratieService
+public class DeclarationService : IDeclarationService
 {
-    private readonly IInfoUserRepository _infoUserRepo;
-    private readonly IOrarUserRepository _orarUserRepo;
-    private readonly IParitateSaptRepository _paritateRepo;
-    private readonly ILogger<DeclaratieService> _logger;
+    private readonly IUserInformationRepository _userInformationRepository;
+    private readonly IUserScheduleRepository _userScheduleRepository;
+    private readonly IWeekParityRepository _weekParityRepository;
+    private readonly ILogger<DeclarationService> _logger;
 
-    public DeclaratieService(
-        IInfoUserRepository infoUserRepo,
-        IOrarUserRepository orarUserRepo,
-        IParitateSaptRepository paritateRepo,
-        ILogger<DeclaratieService> logger)
+    public DeclarationService(
+        IUserInformationRepository userInformationRepository,
+        IUserScheduleRepository userScheduleRepository,
+        IWeekParityRepository weekParityRepository,
+        ILogger<DeclarationService> logger)
     {
-        _infoUserRepo = infoUserRepo;
-        _orarUserRepo = orarUserRepo;
-        _paritateRepo = paritateRepo;
+        _userInformationRepository = userInformationRepository;
+        _userScheduleRepository = userScheduleRepository;
+        _weekParityRepository = weekParityRepository;
         _logger = logger;
 
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
     }
 
-    public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate)
+    public async Task<byte[]> GenerateDeclarationAsync(string userId, List<DateTime> workedDays)
     {
-        _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
+        _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, workedDays);
 
-        var user = await _infoUserRepo.GetActiveInfoAsync(userId);
+        var user = await _userInformationRepository.GetActiveInfoAsync(userId);
         if (user == null)
             throw new Exception("User not found.");
 
 
-        var orar = await _orarUserRepo.GetAllAsync(userId);
+        var orar = await _userScheduleRepository.GetAllAsync(userId);
         if (orar == null || !orar.Any())
             throw new Exception("No schedule exists for this user.");
 
-        var paritati = await _paritateRepo.GetParitateSaptAsync(userId) ?? new List<ParitateSaptamanaDTO>();
+        var paritati = await _weekParityRepository.GetWeekParityAsync(userId) ?? new List<WeekParityDTO>();
         if (paritati == null || !paritati.Any())
             throw new Exception("No parity data exists for this user.");
 
-        var userDto = new InfoUserDTO
+        var userDto = new UserInformationDTO
         {
             Declarant = user.Declarant,
             Tip = user.Tip,
@@ -58,126 +58,126 @@ public class DeclaratieService : IDeclaratieService
             Departament = user.Departament
         };
 
-        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati);
+        var pdf = GeneratePdfDocument(userDto, orar, workedDays, paritati);
 
         _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
         return pdf;
     }
 
-    private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
+    private byte[] GeneratePdfDocument(UserInformationDTO user, List<UserScheduleDTO> ore, List<DateTime> zileLucrate, List<WeekParityDTO> paritati)
     {
         using var ms = new MemoryStream();
         var doc = new Document(PageSize.A4.Rotate(), 20f, 20f, 20f, 20f);
         PdfWriter.GetInstance(doc, ms);
         doc.Open();
 
-        AdaugaHeader(doc, user);
-        AdaugaTitluSiParagraf(doc, user, zileLucrate);
-        AdaugaTabelOre(doc, ore, zileLucrate, paritati);
-        AdaugaTabelCoeficienti(doc);
-        AdaugaParagrafLegal(doc);
-        AdaugaSemnaturi(doc, user);
+        AddHeader(doc, user);
+        AddTitleAndParagraph(doc, user, zileLucrate);
+        AddScheduleTable(doc, ore, zileLucrate, paritati);
+        AddCoefficientsTable(doc);
+        AddParagraphLegal(doc);
+        AddSognatures(doc, user);
 
         doc.Close();
         return ms.ToArray();
     }
 
-    private IEnumerable<T> FiltreazaOreGeneric<T>(
-    List<OrarUserDTO> orar,
-    List<ParitateSaptamanaDTO> paritati,
-    List<DateTime> zileLucrate,
-    Func<OrarUserDTO, DateTime, T> selector)
+    private IEnumerable<T> FilterHoursGeneric<T>(
+    List<UserScheduleDTO> schedule,
+    List<WeekParityDTO> weekParities,
+    List<DateTime> workedDays,
+    Func<UserScheduleDTO, DateTime, T> selector)
     {
-        var oreConsumatGlobal = new Dictionary<(int NrPost, string Formatia, string Tip, string SaptInceput), int>();
-        var orePeZi = new Dictionary<DateTime, int>();
+        var hoursGloballyConsumed = new Dictionary<(int NrPost, string Formatia, string Tip, string SaptInceput), int>();
+        var hoursPerDay = new Dictionary<DateTime, int>();
 
-        foreach (var zi in zileLucrate.OrderBy(z => z))
+        foreach (var day in workedDays.OrderBy(z => z))
         {
-            var ziSaptamana = zi.DayOfWeek;
+            var weekDay = day.DayOfWeek;
 
-            var orarPeZi = orar.Where(o =>
-                ConvertZiTextToDayOfWeek(o.Ziua) == ziSaptamana &&
+            var schedulePerDay = schedule.Where(o =>
+                ConvertDayTextToDayOfWeek(o.Ziua) == weekDay &&
                 !string.IsNullOrWhiteSpace(o.Formatia) &&
                 new[] { o.OreCurs, o.OreSem, o.OreLab, o.OreProi }.Count(x => x > 0) == 1 &&
-                (string.IsNullOrWhiteSpace(o.ImparPar) || VerificaParitate(paritati, zi, o.ImparPar))
+                (string.IsNullOrWhiteSpace(o.ImparPar) || CheckWeekParity(weekParities, day, o.ImparPar))
             ).ToList();
 
-            var speciale = orarPeZi
+            var special = schedulePerDay
                 .Where(o => !string.IsNullOrWhiteSpace(o.SaptamanaInceput) && o.TotalOre > 0)
                 .GroupBy(o => new { o.NrPost, o.Formatia, o.Tip, o.SaptamanaInceput, o.ImparPar });
 
-            foreach (var grup in speciale)
+            foreach (var group in special)
             {
-                if (!int.TryParse(grup.Key.SaptamanaInceput.Replace("S", ""), out int saptInceput))
+                if (!int.TryParse(group.Key.SaptamanaInceput.Replace("S", ""), out int startWeek))
                     continue;
 
-                var saptCurenta = AflaNrSaptamana(zi, paritati);
-                if (!saptCurenta.HasValue || saptCurenta.Value < saptInceput)
+                var currentWeek = CalculateWeekNumber(day, weekParities);
+                if (!currentWeek.HasValue || currentWeek.Value < startWeek)
                     continue;
 
-                var key = (grup.Key.NrPost, grup.Key.Formatia, grup.Key.Tip, grup.Key.SaptamanaInceput);
-                oreConsumatGlobal.TryGetValue(key, out int dejaConsumate);
+                var key = (group.Key.NrPost, group.Key.Formatia, group.Key.Tip, group.Key.SaptamanaInceput);
+                hoursGloballyConsumed.TryGetValue(key, out int alreadyConsumed);
 
-                int oreOrar = grup.Sum(o => o.OreCurs + o.OreSem + o.OreLab + o.OreProi);
-                if (oreOrar == 0) continue;
+                int scheduleHours = group.Sum(o => o.OreCurs + o.OreSem + o.OreLab + o.OreProi);
+                if (scheduleHours == 0) continue;
 
-                int oreRamase = CalculeazaOreRamaseInSaptamana(saptCurenta.Value, saptInceput, grup.Key.ImparPar, grup.First().TotalOre, oreOrar);
-                int maxPermis = grup.First().TotalOre - dejaConsumate;
+                int availableHours = CalculateRemainingHoursInWeek(currentWeek.Value, startWeek, group.Key.ImparPar, group.First().TotalOre, scheduleHours);
+                int maxAllowedHours = group.First().TotalOre - alreadyConsumed;
 
-                if (maxPermis <= 0)
+                if (maxAllowedHours <= 0)
                 {
-                    foreach (var o in grup)
+                    foreach (var o in group)
                         if (o.OreCurs + o.OreSem + o.OreLab + o.OreProi > 0)
-                            yield return selector(o, zi);
+                            yield return selector(o, day);
                     continue;
                 }
 
-                if (oreRamase <= 0) continue;
+                if (availableHours <= 0) continue;
 
-                int deAdaugat = Math.Min(oreRamase, maxPermis);
-                int alocat = 0;
+                int toAdd = Math.Min(availableHours, maxAllowedHours);
+                int allocated = 0;
 
-                foreach (var o in grup)
+                foreach (var o in group)
                 {
-                    int oreFizice = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
-                    if (oreFizice == 0 || alocat >= deAdaugat) continue;
+                    int physicalHours = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
+                    if (physicalHours == 0 || allocated >= toAdd) continue;
 
-                    int alocHere = Math.Min(oreFizice, deAdaugat - alocat);
-                    orePeZi.TryGetValue(zi.Date, out int totalInZi);
+                    int alocHere = Math.Min(physicalHours, toAdd - allocated);
+                    hoursPerDay.TryGetValue(day.Date, out int totalInDay);
 
-                    if (totalInZi + alocHere > 12) break;
+                    if (totalInDay + alocHere > 12) break;
 
                     if (o.OreCurs > 0) o.OreCurs = alocHere;
                     if (o.OreSem > 0) o.OreSem = alocHere;
                     if (o.OreLab > 0) o.OreLab = alocHere;
                     if (o.OreProi > 0) o.OreProi = alocHere;
 
-                    orePeZi[zi.Date] = totalInZi + alocHere;
-                    yield return selector(o, zi);
-                    alocat += alocHere;
+                    hoursPerDay[day.Date] = totalInDay + alocHere;
+                    yield return selector(o, day);
+                    allocated += alocHere;
                 }
 
-                oreConsumatGlobal[key] = dejaConsumate + alocat;
+                hoursGloballyConsumed[key] = alreadyConsumed + allocated;
             }
 
-            var normale = orarPeZi
+            var normal = schedulePerDay
                 .Where(o => string.IsNullOrWhiteSpace(o.SaptamanaInceput) || o.TotalOre <= 0);
 
-            foreach (var o in normale)
+            foreach (var o in normal)
             {
-                int oreFizice = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
-                if (oreFizice == 0) continue;
+                int phisicalHours = o.OreCurs + o.OreSem + o.OreLab + o.OreProi;
+                if (phisicalHours == 0) continue;
 
-                orePeZi.TryGetValue(zi.Date, out int totalInZi);
-                if (totalInZi + oreFizice > 12) continue;
+                hoursPerDay.TryGetValue(day.Date, out int totalInZi);
+                if (totalInZi + phisicalHours > 12) continue;
 
-                orePeZi[zi.Date] = totalInZi + oreFizice;
-                yield return selector(o, zi);
+                hoursPerDay[day.Date] = totalInZi + phisicalHours;
+                yield return selector(o, day);
             }
         }
     }
 
-    private void AdaugaHeader(Document doc, InfoUserDTO user)
+    private void AddHeader(Document doc, UserInformationDTO user)
     {
         var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
         var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
@@ -186,51 +186,51 @@ public class DeclaratieService : IDeclaratieService
         headerTable.WidthPercentage = 100;
         headerTable.SetWidths(new float[] { 70, 30 });
 
-        var stangaHeader = new PdfPTable(1);
-        stangaHeader.AddCell(new PdfPCell(new Phrase(user.Universitate ?? "", fontNormal)) { Border = 0 });
-        stangaHeader.AddCell(new PdfPCell(new Phrase(user.Facultate ?? "", fontNormal)) { Border = 0 });
-        stangaHeader.AddCell(new PdfPCell(new Phrase(user.Departament ?? "", fontNormal)) { Border = 0 });
+        var leftHeader = new PdfPTable(1);
+        leftHeader.AddCell(new PdfPCell(new Phrase(user.Universitate ?? "", fontNormal)) { Border = 0 });
+        leftHeader.AddCell(new PdfPCell(new Phrase(user.Facultate ?? "", fontNormal)) { Border = 0 });
+        leftHeader.AddCell(new PdfPCell(new Phrase(user.Departament ?? "", fontNormal)) { Border = 0 });
 
-        var dreaptaHeader = new PdfPTable(1);
-        dreaptaHeader.AddCell(new PdfPCell(new Phrase("Aprobat,", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
-        dreaptaHeader.AddCell(new PdfPCell(new Phrase("Decan", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
-        dreaptaHeader.AddCell(new PdfPCell(new Phrase(user.Decan ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+        var rightHeader = new PdfPTable(1);
+        rightHeader.AddCell(new PdfPCell(new Phrase("Aprobat,", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+        rightHeader.AddCell(new PdfPCell(new Phrase("Decan", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+        rightHeader.AddCell(new PdfPCell(new Phrase(user.Decan ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
 
-        headerTable.AddCell(new PdfPCell(stangaHeader) { Border = 0 });
-        headerTable.AddCell(new PdfPCell(dreaptaHeader) { Border = 0 });
+        headerTable.AddCell(new PdfPCell(leftHeader) { Border = 0 });
+        headerTable.AddCell(new PdfPCell(rightHeader) { Border = 0 });
 
         doc.Add(headerTable);
         doc.Add(new Paragraph(" "));
     }
 
-    private void AdaugaTitluSiParagraf(Document doc, InfoUserDTO user, List<DateTime> zileLucrate)
+    private void AddTitleAndParagraph(Document doc, UserInformationDTO user, List<DateTime> workedDays)
     {
         var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
         var fontBoldUnderline = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
         fontBoldUnderline.SetStyle(Font.UNDERLINE);
 
-        var titlu = new Paragraph("DECLARATIE", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12))
+        var title = new Paragraph("DECLARATIE", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12))
         {
             Alignment = Element.ALIGN_CENTER
         };
-        doc.Add(titlu);
+        doc.Add(title);
 
-        var primaZi = zileLucrate.First();
-        var dataStart = new DateTime(primaZi.Year, primaZi.Month, 1).ToString("dd.MM.yyyy");
-        var dataEnd = new DateTime(primaZi.Year, primaZi.Month, DateTime.DaysInMonth(primaZi.Year, primaZi.Month)).ToString("dd.MM.yyyy");
+        var firstDay = workedDays.First();
+        var dataStart = new DateTime(firstDay.Year, firstDay.Month, 1).ToString("dd.MM.yyyy");
+        var dataEnd = new DateTime(firstDay.Year, firstDay.Month, DateTime.DaysInMonth(firstDay.Year, firstDay.Month)).ToString("dd.MM.yyyy");
 
-        var paragraf = new Paragraph();
-        paragraf.Add(new Chunk("Subsemnatul(a), ", fontNormal));
-        paragraf.Add(new Chunk(user.Declarant ?? "", fontBoldUnderline));
-        paragraf.Add(new Chunk(", am suplinit in intervalul ", fontNormal));
-        paragraf.Add(new Chunk($"{dataStart} - {dataEnd}", fontBoldUnderline));
-        paragraf.Add(new Chunk($" in {user.Departament ?? ""} activitati didactice dupa cum urmeaza:", fontNormal));
-        paragraf.SpacingBefore = 10f;
-        paragraf.SpacingAfter = 10f;
-        doc.Add(paragraf);
+        var paragraph = new Paragraph();
+        paragraph.Add(new Chunk("Subsemnatul(a), ", fontNormal));
+        paragraph.Add(new Chunk(user.Declarant ?? "", fontBoldUnderline));
+        paragraph.Add(new Chunk(", am suplinit in intervalul ", fontNormal));
+        paragraph.Add(new Chunk($"{dataStart} - {dataEnd}", fontBoldUnderline));
+        paragraph.Add(new Chunk($" in {user.Departament ?? ""} activitati didactice dupa cum urmeaza:", fontNormal));
+        paragraph.SpacingBefore = 10f;
+        paragraph.SpacingAfter = 10f;
+        doc.Add(paragraph);
     }
 
-    private void AdaugaTabelCoeficienti(Document doc)
+    private void AddCoefficientsTable(Document doc)
     {
         var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 10);
         var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
@@ -268,44 +268,44 @@ public class DeclaratieService : IDeclaratieService
         doc.Add(new Paragraph("\n"));
     }
 
-    private void AdaugaParagrafLegal(Document doc)
+    private void AddParagraphLegal(Document doc)
     {
         var font = FontFactory.GetFont(FontFactory.HELVETICA, 8);
-        var paragrafLung = new Paragraph("Subsemnatul/Subsemnata, cunoscand prevederile art. 326 din Codul Penal cu privire la falsul în declaratii, declar pe propria raspundere ca in luna pentru care fac prezenta declaratie de plata cu ora, in afara functiei/normei de baza, am desfasurat activitati in regim de plata cu ora si/sau cu contract individual de munca cu timp partial si/sau activitati in cadrul proiectelor respectand legislatia muncii cu privire la numarul maxim de ore ce pot fi efectuate in cadrul activitatilor în afara functiei de baza/normei de baza, fara a depasi o medie de 4 ore/zi, respectiv o medie de 84 ore/luna in anul universitar, cu respectarea duratei zilnice si saptamanale maxime legale a timpului de munca si a perioadelor minime de repaus zilnic si saptamanal. De asemenea, declar ca sunt de acord sa pun la dispozitia institutiilor abilitate, la solicitarea acestora, documentele doveditoare in scopul verificarii si confirmarii informatiilor furnizare prin aceasta declaratie.", font)
+        var paragraphLong = new Paragraph("Subsemnatul/Subsemnata, cunoscand prevederile art. 326 din Codul Penal cu privire la falsul în declaratii, declar pe propria raspundere ca in luna pentru care fac prezenta declaratie de plata cu ora, in afara functiei/normei de baza, am desfasurat activitati in regim de plata cu ora si/sau cu contract individual de munca cu timp partial si/sau activitati in cadrul proiectelor respectand legislatia muncii cu privire la numarul maxim de ore ce pot fi efectuate in cadrul activitatilor în afara functiei de baza/normei de baza, fara a depasi o medie de 4 ore/zi, respectiv o medie de 84 ore/luna in anul universitar, cu respectarea duratei zilnice si saptamanale maxime legale a timpului de munca si a perioadelor minime de repaus zilnic si saptamanal. De asemenea, declar ca sunt de acord sa pun la dispozitia institutiilor abilitate, la solicitarea acestora, documentele doveditoare in scopul verificarii si confirmarii informatiilor furnizare prin aceasta declaratie.", font)
         {
             SpacingBefore = 5f,
             SpacingAfter = 10f
         };
-        doc.Add(paragrafLung);
+        doc.Add(paragraphLong);
 
-        var paragrafScurt = new Paragraph("Se certifica de noi ca orele declarate mai sus au fost efectuate de declarant intocmai.")
+        var paragraphShort = new Paragraph("Se certifica de noi ca orele declarate mai sus au fost efectuate de declarant intocmai.")
         {
             Alignment = Element.ALIGN_CENTER
         };
-        doc.Add(paragrafScurt);
+        doc.Add(paragraphShort);
         doc.Add(new Paragraph("\n\n"));
     }
 
-    private void AdaugaSemnaturi(Document doc, InfoUserDTO user)
+    private void AddSognatures(Document doc, UserInformationDTO user)
     {
         var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
-        var semnaturiTable = new PdfPTable(2);
-        semnaturiTable.WidthPercentage = 100;
-        semnaturiTable.SetWidths(new float[] { 50, 50 });
+        var signaturesTable = new PdfPTable(2);
+        signaturesTable.WidthPercentage = 100;
+        signaturesTable.SetWidths(new float[] { 50, 50 });
 
-        semnaturiTable.AddCell(new PdfPCell(new Phrase("DIRECTOR DEPARTAMENT", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
-        semnaturiTable.AddCell(new PdfPCell(new Phrase("DECLARANT", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+        signaturesTable.AddCell(new PdfPCell(new Phrase("DIRECTOR DEPARTAMENT", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+        signaturesTable.AddCell(new PdfPCell(new Phrase("DECLARANT", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
 
-        semnaturiTable.AddCell(new PdfPCell(new Phrase(" ")) { Border = 0, MinimumHeight = 20f });
-        semnaturiTable.AddCell(new PdfPCell(new Phrase(" ")) { Border = 0, MinimumHeight = 20f });
+        signaturesTable.AddCell(new PdfPCell(new Phrase(" ")) { Border = 0, MinimumHeight = 20f });
+        signaturesTable.AddCell(new PdfPCell(new Phrase(" ")) { Border = 0, MinimumHeight = 20f });
 
-        semnaturiTable.AddCell(new PdfPCell(new Phrase(user.DirectorDepartament ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
-        semnaturiTable.AddCell(new PdfPCell(new Phrase(user.Declarant ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+        signaturesTable.AddCell(new PdfPCell(new Phrase(user.DirectorDepartament ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+        signaturesTable.AddCell(new PdfPCell(new Phrase(user.Declarant ?? "", fontBold)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
 
-        doc.Add(semnaturiTable);
+        doc.Add(signaturesTable);
     }
 
-    private void AdaugaTabelOre(Document doc, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
+    private void AddScheduleTable(Document doc, List<UserScheduleDTO> hours, List<DateTime> weekDays, List<WeekParityDTO> weekParities)
     {
         var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
         var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
@@ -325,9 +325,9 @@ public class DeclaratieService : IDeclaratieService
             table.AddCell(new PdfPCell(new Phrase(sub, fontBold)) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER });
 
         int totalC = 0, totalS = 0, totalLA = 0, totalP = 0;
-        double totalOreCoef = 0;
+        double totalHoursCoefficient = 0;
 
-        var orePerZiPost = FiltreazaOreGeneric(ore, paritati, zileLucrate, (o, zi) => new
+        var HoursPerDayPost = FilterHoursGeneric(hours, weekParities, weekDays, (o, zi) => new
         {
             Zi = zi.Date,
             o.NrPost,
@@ -344,27 +344,27 @@ public class DeclaratieService : IDeclaratieService
         .ThenBy(x => x.Zi)
         .ToList();
 
-        var grupuriFinale = orePerZiPost
+        var finalGroups = HoursPerDayPost
         .GroupBy(x => x.NrPost + " " + x.DenPost)
         .ToList();
 
-        foreach (var grup in grupuriFinale)
+        foreach (var group in finalGroups)
         {
-            var randuri = grup.ToList();
+            var rows = group.ToList();
             bool isFirst = true;
-            int rowspan = randuri.Count;
+            int rowspan = rows.Count;
 
-            foreach (var rand in randuri)
+            foreach (var rand in rows)
             {
-                var zi = rand.Zi;
-                var tip = rand.Tip;
+                var day = rand.Zi;
+                var type = rand.Tip;
 
                 int c = rand.OreCurs;
                 int s = rand.OreSem;
                 int la = rand.OreLab;
                 int p = rand.OreProi;
 
-                double coef = tip switch
+                double coef = type switch
                 {
                     "LR" => c > 0 ? 2.0 : 1.0,
                     "LE" => c > 0 ? 2.5 : 1.25,
@@ -373,17 +373,17 @@ public class DeclaratieService : IDeclaratieService
                     _ => 1.0
                 };
 
-                double oreTotal = (c + s + la + p) * coef;
+                double totalHours = (c + s + la + p) * coef;
 
                 totalC += c;
                 totalS += s;
                 totalLA += la;
                 totalP += p;
-                totalOreCoef += oreTotal;
+                totalHoursCoefficient += totalHours;
 
                 if (isFirst)
                 {
-                    table.AddCell(new PdfPCell(new Phrase(grup.Key, fontNormal))
+                    table.AddCell(new PdfPCell(new Phrase(group.Key, fontNormal))
                     {
                         Rowspan = rowspan,
                         VerticalAlignment = Element.ALIGN_MIDDLE,
@@ -393,14 +393,14 @@ public class DeclaratieService : IDeclaratieService
                 }
 
 
-                table.AddCell(new PdfPCell(new Phrase(zi.ToString("dd.MM.yyyy"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(day.ToString("dd.MM.yyyy"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(c > 0 ? c.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(s > 0 ? s.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(la > 0 ? la.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(p > 0 ? p.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(tip, fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(type, fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(coef.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(oreTotal.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(totalHours.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(rand.Formatia, fontNormal)));
 
             }
@@ -421,7 +421,7 @@ public class DeclaratieService : IDeclaratieService
         table.AddCell(new PdfPCell(new Phrase(totalP.ToString(), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(emptyCell);
         table.AddCell(emptyCell);
-        table.AddCell(new PdfPCell(new Phrase(totalOreCoef.ToString("0.###"), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+        table.AddCell(new PdfPCell(new Phrase(totalHoursCoefficient.ToString("0.###"), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(emptyCell);
 
 
@@ -449,7 +449,7 @@ public class DeclaratieService : IDeclaratieService
         doc.Add(table);
     }
 
-    private static DayOfWeek? ConvertZiTextToDayOfWeek(string zi) => zi.Trim().ToLower() switch
+    private static DayOfWeek? ConvertDayTextToDayOfWeek(string day) => day.Trim().ToLower() switch
     {
         "luni" => DayOfWeek.Monday,
         "marti" or "marți" => DayOfWeek.Tuesday,
@@ -461,11 +461,11 @@ public class DeclaratieService : IDeclaratieService
         _ => null
     };
 
-    private static bool VerificaParitate(List<ParitateSaptamanaDTO> paritati, DateTime zi, string imparPar)
+    private static bool CheckWeekParity(List<WeekParityDTO> weekParities, DateTime day, string parityType)
     {
-        var ziData = zi.Date;
+        var dateDay = day.Date;
 
-        foreach (var p in paritati)
+        foreach (var p in weekParities)
         {
             if (!DateTime.TryParseExact(p.Data, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dataStart))
                 continue;
@@ -473,67 +473,67 @@ public class DeclaratieService : IDeclaratieService
             var start = dataStart.Date;
             var end = start.AddDays(7).Date;
 
-            if (ziData >= start && ziData < end &&
-                p.Paritate.Equals(imparPar, StringComparison.OrdinalIgnoreCase))
+            if (dateDay >= start && dateDay < end &&
+                p.Paritate.Equals(parityType, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
         return false;
     }
 
-    private int CalculeazaOreRamaseInSaptamana(
-    int saptCurenta,
-    int saptInceput,
-    string paritate,
-    int totalOre,
-    int oreOrar,
-    int maxSaptamani = 10)
+    private int CalculateRemainingHoursInWeek(
+    int currentWeek,
+    int startWeek,
+    string parity,
+    int totalHours,
+    int scheduleHours,
+    int maxWeeks = 10)
     {
-        int diferenta = saptCurenta - saptInceput;
-        int saptamaniTrecute;
+        int diff = currentWeek - startWeek;
+        int weeksPassed;
 
-        if (diferenta < 0)
+        if (diff < 0)
         {
-            return oreOrar;
+            return scheduleHours;
         }
 
-        if (string.IsNullOrWhiteSpace(paritate))
+        if (string.IsNullOrWhiteSpace(parity))
         {
-            saptamaniTrecute = diferenta;
+            weeksPassed = diff;
         }
         else
         {
-            saptamaniTrecute = diferenta / 2;
+            weeksPassed = diff / 2;
 
-            if (diferenta % 2 == 1)
+            if (diff % 2 == 1)
             {
-                if ((paritate.Equals("Par", StringComparison.OrdinalIgnoreCase) && saptInceput % 2 == 0) ||
-                    (paritate.Equals("Impar", StringComparison.OrdinalIgnoreCase) && saptInceput % 2 == 1))
+                if ((parity.Equals("Par", StringComparison.OrdinalIgnoreCase) && startWeek % 2 == 0) ||
+                    (parity.Equals("Impar", StringComparison.OrdinalIgnoreCase) && startWeek % 2 == 1))
                 {
-                    saptamaniTrecute++;
+                    weeksPassed++;
                 }
             }
         }
 
-        if (saptamaniTrecute >= maxSaptamani)
+        if (weeksPassed >= maxWeeks)
         {
             return -1;
         }
 
-        int oreRamase = totalOre - saptamaniTrecute * oreOrar;
-        int oreDeIntors = Math.Min(oreRamase, oreOrar);
+        int remainingHours = totalHours - weeksPassed * scheduleHours;
+        int hoursToReturn = Math.Min(remainingHours, scheduleHours);
 
-        return oreDeIntors > 0 ? oreDeIntors : -1;
+        return hoursToReturn > 0 ? hoursToReturn : -1;
     }
 
-    private static int? AflaNrSaptamana(DateTime zi, List<ParitateSaptamanaDTO> paritati)
+    private static int? CalculateWeekNumber(DateTime day, List<WeekParityDTO> weekParities)
     {
-        for (int i = 0; i < paritati.Count; i++)
+        for (int i = 0; i < weekParities.Count; i++)
         {
-            if (DateTime.TryParseExact(paritati[i].Data, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dataStart))
+            if (DateTime.TryParseExact(weekParities[i].Data, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dataStart))
             {
-                if (zi >= dataStart && zi < dataStart.AddDays(7))
+                if (day >= dataStart && day < dataStart.AddDays(7))
                 {
-                    if (int.TryParse(paritati[i].Sapt.Replace("S", ""), out var sapt))
+                    if (int.TryParse(weekParities[i].Sapt.Replace("S", ""), out var sapt))
                         return sapt;
                 }
             }

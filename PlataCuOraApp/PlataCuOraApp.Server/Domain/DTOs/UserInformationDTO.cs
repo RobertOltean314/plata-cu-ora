@@ -3,7 +3,7 @@
 namespace PlataCuOraApp.Server.Domain.DTOs
 {
     [FirestoreData]
-    public class InfoUserDTO
+    public class UserInformationDTO
     {
         [FirestoreProperty]
         public string Declarant { get; set; } = string.Empty;

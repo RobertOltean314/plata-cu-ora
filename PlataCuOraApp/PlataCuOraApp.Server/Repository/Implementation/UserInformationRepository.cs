@@ -6,38 +6,38 @@ using System.Text.Json;
 
 namespace PlataCuOraApp.Server.Repository.Implementation
 {
-    public class InfoUserRepository : IInfoUserRepository
+    public class UserInformationRepository : IUserInformationRepository
     {
         private readonly FirestoreDb _db;
-        private readonly ILogger<InfoUserRepository> _logger;
+        private readonly ILogger<UserInformationRepository> _logger;
         private const string COLLECTION = "infosUsers";
 
-        public InfoUserRepository(FirestoreDb db, ILogger<InfoUserRepository> logger)
+        public UserInformationRepository(FirestoreDb db, ILogger<UserInformationRepository> logger)
         {
             _db = db;
             _logger = logger;
         }
 
-        public async Task<List<InfoUserDTO>> GetAllInfoAsync(string userId)
+        public async Task<List<UserInformationDTO>> GetAllInfoAsync(string userId)
         {
             var doc = await _db.Collection(COLLECTION).Document(userId).GetSnapshotAsync();
             if (!doc.Exists)
             {
                 _logger.LogWarning($"Document for user {userId} not found.");
-                return new List<InfoUserDTO>();
+                return new List<UserInformationDTO>();
             }
 
             if (doc.TryGetValue<object>("infoList", out var data))
             {
                 var json = JsonSerializer.Serialize(data);
-                var list = JsonSerializer.Deserialize<List<InfoUserDTO>>(json);
-                return list ?? new List<InfoUserDTO>();
+                var list = JsonSerializer.Deserialize<List<UserInformationDTO>>(json);
+                return list ?? new List<UserInformationDTO>();
             }
 
-            return new List<InfoUserDTO>();
+            return new List<UserInformationDTO>();
         }
 
-        public async Task<bool> UpdateAllInfoAsync(string userId, List<InfoUserDTO> infoList)
+        public async Task<bool> UpdateAllInfoAsync(string userId, List<UserInformationDTO> infoList)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             }
         }
 
-        public async Task<bool> AddInfoAsync(string userId, InfoUserDTO newInfo)
+        public async Task<bool> AddInfoAsync(string userId, UserInformationDTO newInfo)
         {
             var list = await GetAllInfoAsync(userId);
 
@@ -76,7 +76,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
         }
 
 
-        public async Task<bool> UpdateInfoAsync(string userId, InfoUserDTO oldInfo, InfoUserDTO newInfo)
+        public async Task<bool> UpdateInfoAsync(string userId, UserInformationDTO oldInfo, UserInformationDTO newInfo)
         {
             var list = await GetAllInfoAsync(userId);
 
@@ -104,7 +104,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             return await UpdateAllInfoAsync(userId, list);
         }
 
-        public async Task<bool> DeleteInfoAsync(string userId, InfoUserDTO info)
+        public async Task<bool> DeleteInfoAsync(string userId, UserInformationDTO info)
         {
             var list = await GetAllInfoAsync(userId);
 
@@ -120,7 +120,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             return await UpdateAllInfoAsync(userId, list);
         }
 
-        public async Task<bool> SetActiveAsync(string userId, InfoUserDTO activeInfo)
+        public async Task<bool> SetActiveAsync(string userId, UserInformationDTO activeInfo)
         {
             var list = await GetAllInfoAsync(userId);
 
@@ -135,7 +135,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
 
             return await UpdateAllInfoAsync(userId, list);
         }
-        public async Task<bool> UnsetActiveAsync(string userId, InfoUserDTO info)
+        public async Task<bool> UnsetActiveAsync(string userId, UserInformationDTO info)
         {
             var list = await GetAllInfoAsync(userId);
 
@@ -151,7 +151,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             return await UpdateAllInfoAsync(userId, list);
         }
 
-        public async Task<InfoUserDTO?> AddActiveInfoToDbAsync(string userId)
+        public async Task<UserInformationDTO?> AddActiveInfoToDbAsync(string userId)
         {
             var list = await GetAllInfoAsync(userId);
             var activeInfo = list.FirstOrDefault(i => i.IsActive);
@@ -177,7 +177,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             return activeInfo;
         }
 
-        public async Task<InfoUserDTO?> GetInfoUserFromDbAsync(string userId)
+        public async Task<UserInformationDTO?> GetInfoUserFromDbAsync(string userId)
         {
             try
             {
@@ -186,7 +186,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
 
                 if (snapshot.Exists)
                 {
-                    var infoUser = snapshot.ConvertTo<InfoUserDTO>();
+                    var infoUser = snapshot.ConvertTo<UserInformationDTO>();
                     _logger.LogInformation($"Fetched infoUser for user {userId} from DB.");
                     return infoUser;
                 }
@@ -203,7 +203,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             }
         }
 
-        public async Task<InfoUserDTO?> GetActiveInfoAsync(string userId)
+        public async Task<UserInformationDTO?> GetActiveInfoAsync(string userId)
         {
             var doc = await _db.Collection(COLLECTION).Document(userId).GetSnapshotAsync();
             if (!doc.Exists)
@@ -212,7 +212,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             if (doc.TryGetValue<object>("infoList", out var data))
             {
                 var json = JsonSerializer.Serialize(data);
-                var list = JsonSerializer.Deserialize<List<InfoUserDTO>>(json);
+                var list = JsonSerializer.Deserialize<List<UserInformationDTO>>(json);
                 return list?.FirstOrDefault(i => i.IsActive);
             }
 
