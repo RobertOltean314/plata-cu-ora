@@ -1,0 +1,39 @@
+.orar-wrapper {
+  max-width: 900px;
+  margin: 3rem auto;
+  background: var(--primary-white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-light);
+  padding: 2rem;
+}
+
+.orar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.orar-header h2 {
+  flex: 1;
+  color: var(--primary-blue);
+}
+
+.status {
+  font-weight: 600;
+  margin-left: 1rem;
+  color: var(--primary-red);
+}
+
+.status.validated {
+  color: var(--success-green);
+}
+
+.orar-table th, .orar-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.orar-table input {
+  min-width: 90px;
+  padding: 4px 6px;
+}

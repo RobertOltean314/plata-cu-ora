@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './core/navbar/navbar.component';
 import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { OrarComponent } from './features/orar/orar.component';
 
 
 @NgModule({

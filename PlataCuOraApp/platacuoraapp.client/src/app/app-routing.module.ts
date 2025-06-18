@@ -8,6 +8,8 @@ import { NotFoundComponent } from './features/notFound/notFound.component';
 import { CalendarComponent } from './features/calendar/calendar.component';
 import { HomepageComponent } from './features/homepage/homepage.component';
 import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
+import { OrarComponent } from './features/orar/orar.component';
+
 
 const routes: Routes = [
   // Public routes
@@ -35,6 +37,12 @@ const routes: Routes = [
     component: DeclarationGeneratorComponent,
     canActivate: [AuthGuard]
   },
+  {
+  path: 'orar',
+  loadComponent: () => import('./features/orar/orar.component').then(m => m.OrarComponent),
+  canActivate: [AuthGuard]
+},
+
   
   // Fallback route
   { path: '**', component: NotFoundComponent }
