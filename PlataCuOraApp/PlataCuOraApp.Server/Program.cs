@@ -99,6 +99,9 @@ builder.Services.AddScoped<IOrarUserService, OrarUserService>();
 builder.Services.AddScoped<IParitateSaptRepository, ParitateSaptRepository>();
 builder.Services.AddScoped<IParitateSaptService, ParitateSaptService>();
 
+builder.Services.AddScoped<IWorkingDaysRepository, WorkingDaysRepository>();
+builder.Services.AddScoped<IWorkingDaysService, WorkingDaysService>();
+
 builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
 
 

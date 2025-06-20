@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using PlataCuOraApp.Server.Domain.DTOs;
+using Google.Cloud.Firestore;
+using PlataCuOraApp.Server.Domain.DTO;
+using PlataCuOraApp.Server.Services;
 
 namespace PlataCuOraApp.Server.Controllers
 {
