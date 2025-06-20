@@ -19,6 +19,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   selectedProfile?: InfoUserDTO;
   editingProfile?: InfoUserDTO;
   userId: string = '';
+  successMessage: string = '';
+  errorMessage: string = '';
 
   constructor(
     private userService: UserService,
@@ -38,9 +40,16 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   loadProfiles() {
     if (!this.userId) return;
-    this.infoUserService.getAllInfo(this.userId).subscribe(profiles => {
-      this.profiles = profiles;
-      this.selectedProfile = profiles.find(p => p.isActive) || profiles[0];
+    this.infoUserService.getAllInfo(this.userId).subscribe({
+      next: (profiles) => {
+        this.profiles = profiles;
+        // Only select the active profile, do not default to the first one
+        this.selectedProfile = profiles.find(p => p.isActive) || undefined;
+      },
+      error: () => {
+        this.errorMessage = 'Could not load profiles.';
+        setTimeout(() => this.errorMessage = '', 3000);
+      }
     });
   }
 
@@ -50,8 +59,16 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   setActiveProfile() {
     if (!this.selectedProfile) return;
-    this.infoUserService.setActive(this.userId, this.selectedProfile).subscribe(() => {
-      this.loadProfiles();
+    this.infoUserService.setActive(this.userId, this.selectedProfile).subscribe({
+      next: () => {
+        this.successMessage = 'Profile set as active!';
+        this.loadProfiles();
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: () => {
+        this.errorMessage = 'Could not set profile as active.';
+        setTimeout(() => this.errorMessage = '', 3000);
+      }
     });
   }
 
@@ -74,17 +91,42 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   saveProfile() {
     if (!this.editingProfile) return;
-    if (this.selectedProfile && this.editingProfile && this.selectedProfile !== this.editingProfile) {
-      // Update existing
-      this.infoUserService.updateInfo(this.userId, this.selectedProfile, this.editingProfile).subscribe(() => {
-        this.editingProfile = undefined;
-        this.loadProfiles();
+    // If editing an existing profile
+    if (this.selectedProfile && this.selectedProfile !== this.editingProfile) {
+      this.infoUserService.updateInfo(this.userId, this.selectedProfile, this.editingProfile).subscribe({
+        next: () => {
+          this.successMessage = 'Profile updated successfully!';
+          this.editingProfile = undefined;
+          this.loadProfiles();
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: () => {
+          this.errorMessage = 'Could not update profile.';
+          setTimeout(() => this.errorMessage = '', 3000);
+        }
       });
     } else {
-      // Add new
-      this.infoUserService.addInfo(this.userId, this.editingProfile).subscribe(() => {
-        this.editingProfile = undefined;
-        this.loadProfiles();
+      // Add new profile
+      this.infoUserService.addInfo(this.userId, this.editingProfile).subscribe({
+        next: () => {
+          this.successMessage = 'Profile added successfully!';
+          const addedProfile = { ...this.editingProfile }; // Save for later selection
+          this.editingProfile = undefined;
+          this.loadProfiles();
+          // Optionally, select the newly added profile after reload
+          setTimeout(() => {
+            const newProfile = this.profiles.find(p =>
+              p.declarant === addedProfile.declarant &&
+              p.universitate === addedProfile.universitate
+            );
+            this.selectedProfile = newProfile;
+          }, 500);
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: () => {
+          this.errorMessage = 'Could not add profile.';
+          setTimeout(() => this.errorMessage = '', 3000);
+        }
       });
     }
   }
@@ -103,8 +145,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   changeCredentials() {
-    // TODO: implement this functionallity
-    console.log('Change credentials clicked');
+    // Implement as needed
   }
 
   ngOnDestroy() {

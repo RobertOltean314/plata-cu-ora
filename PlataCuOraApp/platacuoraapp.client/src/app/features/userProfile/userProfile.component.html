@@ -16,7 +16,9 @@
 
           <div class="card-body p-4 text-center">
             <div class="mb-3">
-              <h3 class="fw-bold">{{user.name || 'User'}}</h3>
+              <h3 class="fw-bold">
+                 {{ (selectedProfile?.isActive && selectedProfile?.declarant) || user.name || 'User' }}
+              </h3>
               <p class="text-muted mb-0">{{user.email}}</p>
             </div>
 
@@ -33,6 +35,13 @@
           </div>
 
           <div class="card-body border-top pt-4">
+            <div *ngIf="successMessage" class="alert alert-success text-center my-2">
+              {{ successMessage }}
+            </div>
+            <div *ngIf="errorMessage" class="alert alert-danger text-center my-2">
+              {{ errorMessage }}
+            </div>
+
             <div *ngIf="profiles.length > 0">
               <label for="profileSelect">Select Profile:</label>
               <select id="profileSelect" class="form-select mb-3"
@@ -42,20 +51,28 @@
                   {{ profile.declarant }} - {{ profile.universitate }} {{ profile.isActive ? '(Active)' : '' }}
                 </option>
               </select>
-              <button class="btn btn-success mb-3"
-                      (click)="selectedProfile && setActiveProfile()"
-                      [disabled]="!selectedProfile || selectedProfile.isActive">
-                Set Active
-              </button>
-              <button class="btn btn-primary mb-3"
-                      (click)="selectedProfile && editProfile(selectedProfile)"
-                      [disabled]="!selectedProfile">
-                Edit Profile
-              </button>
-            </div>
-            <button class="btn btn-outline-primary mb-3" (click)="addNewProfile()">Add New Profile</button>
 
-            <div *ngIf="editingProfile">
+              <!-- Aligned buttons in one row, all blue -->
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-primary"
+                        (click)="selectedProfile && setActiveProfile()"
+                        [disabled]="!selectedProfile || selectedProfile.isActive">
+                  Set Active
+                </button>
+                <button class="btn btn-primary"
+                        (click)="selectedProfile && editProfile(selectedProfile)"
+                        [disabled]="!selectedProfile">
+                  Edit Profile
+                </button>
+                <button class="btn btn-primary"
+                        (click)="addNewProfile()">
+                  Add New Profile
+                </button>
+              </div>
+            </div>
+
+            <!-- Highlighted form block -->
+            <div *ngIf="editingProfile" class="border border-primary rounded p-3 mb-3">
               <form (ngSubmit)="saveProfile()">
                 <input [(ngModel)]="editingProfile.declarant" name="declarant" placeholder="Declarant" class="form-control mb-2" required>
                 <input [(ngModel)]="editingProfile.tip" name="tip" placeholder="Tip" class="form-control mb-2" required>
@@ -66,7 +83,7 @@
                 <input [(ngModel)]="editingProfile.departament" name="departament" placeholder="Departament" class="form-control mb-2">
                 <div class="form-check mb-2">
                   <input class="form-check-input" type="checkbox" [(ngModel)]="editingProfile.isActive" name="isActive" id="isActiveCheck">
-                  <label class="form-check-label" for="isActiveCheck">Active</label>
+                  <label class="form-check-label" for="isActiveCheck">Set Active</label>
                 </div>
                 <button type="submit" class="btn btn-primary me-2">Save</button>
                 <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
@@ -104,4 +121,5 @@
       Go to Login
     </a>
   </div>
-</div> }
+</div>
+}

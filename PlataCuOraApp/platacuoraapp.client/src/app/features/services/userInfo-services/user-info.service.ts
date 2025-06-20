@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environment/environment';
 
 export interface InfoUserDTO {
   declarant: string;
@@ -22,7 +23,8 @@ export interface UpdateInfoRequestDTO {
   providedIn: 'root'
 })
 export class InfoUserService {
-  private apiUrl = 'api/InfoUser'; // Adjust base URL as needed
+  //private apiUrl = 'api/InfoUser';
+  private apiUrl = environment.apiBaseUrl + '/api/InfoUser';
 
   constructor(private http: HttpClient) {}
 
@@ -41,8 +43,6 @@ export class InfoUserService {
   }
 
   addInfo(userId: string, info: InfoUserDTO): Observable<any> {
-    console.log('Adding info:', info);
-    console.log('User ID:', userId);
     if (!info.declarant || !info.tip || !info.directorDepartament || !info.decan || !info.universitate || !info.facultate || !info.departament) {
       console.error('Invalid info data:', info);
       // Return an observable error if data is invalid
