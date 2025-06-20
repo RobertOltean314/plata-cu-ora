@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using PlataCuOraApp.Server.Domain.DTOs;
+using Google.Cloud.Firestore;
+using PlataCuOraApp.Server.Domain.DTO;
+using PlataCuOraApp.Server.Services;
 
 namespace PlataCuOraApp.Server.Controllers
 {
@@ -13,6 +16,8 @@ namespace PlataCuOraApp.Server.Controllers
     [Route("api/[controller]")]
     public class HolidaysController : ControllerBase
     {
+        private readonly FirestoreDb _db;
+        private readonly IParitateSaptService _parityService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<HolidaysController> _logger;
         private const string HolidayApiBaseUrl = "https://zilelibere.webventure.ro/api";

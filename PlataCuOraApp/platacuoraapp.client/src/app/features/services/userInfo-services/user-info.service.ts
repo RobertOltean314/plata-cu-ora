@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environment/environment';
 
 export interface InfoUserDTO {
   declarant: string;
@@ -22,7 +23,8 @@ export interface UpdateInfoRequestDTO {
   providedIn: 'root'
 })
 export class InfoUserService {
-  private apiUrl = 'api/InfoUser'; // Adjust base URL as needed
+  //private apiUrl = 'api/InfoUser'; // Adjust base URL as needed
+  private apiUrl = environment.apiBaseUrl + '/api/InfoUser';
 
   constructor(private http: HttpClient) {}
 
