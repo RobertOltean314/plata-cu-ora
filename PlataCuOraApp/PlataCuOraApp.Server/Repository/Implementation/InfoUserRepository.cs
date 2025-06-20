@@ -131,6 +131,12 @@ namespace PlataCuOraApp.Server.Repository.Implementation
                 return false;
             }
 
+            foreach (var item in list)
+            {
+                item.IsActive = false; // Unset all other active entries
+            }
+
+            // Set the specified entry as active
             list[index].IsActive = true;
 
             return await UpdateAllInfoAsync(userId, list);

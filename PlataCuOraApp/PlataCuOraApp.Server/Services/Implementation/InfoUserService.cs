@@ -25,6 +25,7 @@ namespace PlataCuOraApp.Server.Services.Implementation
         public async Task<(bool success, string error)> AddInfoAsync(string userId, InfoUserDTO newInfo)
         {
             _logger.LogInformation($"Adding new info for user {userId}");
+            newInfo.IsActive = false; // Always set isActive to false when adding a new profile
             var result = await _repo.AddInfoAsync(userId, newInfo);
             if (result)
                 return (true, null);
