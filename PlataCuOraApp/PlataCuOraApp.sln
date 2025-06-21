@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlataCuOraApp.Server", "Pla
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "platacuoraapp.client", "platacuoraapp.client\platacuoraapp.client.esproj", "{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlataCuOraApp.Tests", "PlataCuOraApp.Tests\PlataCuOraApp.Tests.csproj", "{416FF0DC-79A3-4F4F-AB4E-9525DF6C64B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0AB31F5-C274-4B4C-A016-B6FC1A9437CF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{416FF0DC-79A3-4F4F-AB4E-9525DF6C64B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{416FF0DC-79A3-4F4F-AB4E-9525DF6C64B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{416FF0DC-79A3-4F4F-AB4E-9525DF6C64B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{416FF0DC-79A3-4F4F-AB4E-9525DF6C64B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
