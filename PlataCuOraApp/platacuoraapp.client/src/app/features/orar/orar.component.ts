@@ -56,7 +56,7 @@ export class OrarComponent implements OnInit {
         this.getOrar();
         this.newEntry = this.getEmptyEntry();
       },
-      error: (err: any): void => alert('Eroare la adăugare!')
+      // error: (err: any): void => alert('Eroare la adăugare!')
     });
   }
 
