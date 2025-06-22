@@ -69,7 +69,6 @@ namespace PlataCuOraApp.Server.Repository.Implementation
                     item.IsActive = false;
                 }
             }
-
             list.Add(newInfo);
 
             return await UpdateAllInfoAsync(userId, list);
@@ -183,6 +182,7 @@ namespace PlataCuOraApp.Server.Repository.Implementation
             return activeInfo;
         }
 
+
         public async Task<InfoUserDTO?> GetInfoUserFromDbAsync(string userId)
         {
             try
@@ -207,6 +207,8 @@ namespace PlataCuOraApp.Server.Repository.Implementation
                 _logger.LogError(ex, $"Failed to fetch infoUser for user {userId}.");
                 return null;
             }
+
+            return null;
         }
 
         public async Task<InfoUserDTO?> GetActiveInfoAsync(string userId)
@@ -224,7 +226,5 @@ namespace PlataCuOraApp.Server.Repository.Implementation
 
             return null;
         }
-
-
     }
 }
