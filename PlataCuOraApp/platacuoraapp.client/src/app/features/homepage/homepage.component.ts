@@ -39,6 +39,13 @@ export class HomepageComponent implements OnInit, OnDestroy {
       icon: 'bi bi-person-circle',
       route: '/user-profile',
       available: true
+    },
+    {
+      title: 'Orar',
+      description: 'Vizualizați și editați lista orelor ',
+      icon: 'bi bi-clock-history', // poți schimba cu orice icon Bootstrap vrei
+      route: '/orar',
+      available: true
     }
   ];
 
