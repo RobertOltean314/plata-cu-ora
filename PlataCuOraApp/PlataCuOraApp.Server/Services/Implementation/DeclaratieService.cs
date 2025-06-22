@@ -34,9 +34,10 @@ public class DeclaratieService : IDeclaratieService
     {
         _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
 
-        var user = await _infoUserRepo.GetUserByIdAsync(userId);
+        var user = await _infoUserRepo.GetActiveInfoAsync(userId);
         if (user == null)
             throw new Exception("User not found.");
+
 
         var orar = await _orarUserRepo.GetAllAsync(userId);
         if (orar == null || !orar.Any())

@@ -5,7 +5,7 @@ namespace PlataCuOraApp.Server.Domain.Entities
     [FirestoreData]
     public class InfoUser
     {
-        [FirestoreDocumentId]  
+        [FirestoreDocumentId]
         public string Id { get; set; }
 
         [FirestoreProperty("declarant")]

@@ -1,7 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FeatureTile } from '../../models/featureTile.model';
+import { UserService } from '../services/user-services/user.service';
+import { Subscription, take } from 'rxjs';
+import { User } from '../../models/user.model';
 
 
 @Component({
@@ -11,8 +14,9 @@ import { FeatureTile } from '../../models/featureTile.model';
   standalone: true,
   imports: [CommonModule]
 })
-export class HomepageComponent {
-  username: string = '';
+export class HomepageComponent implements OnInit, OnDestroy {
+  user: any;
+  getLoggedInUserSubscription?: Subscription;
   
   features: FeatureTile[] = [
     {
@@ -45,9 +49,20 @@ export class HomepageComponent {
     }
   ];
 
-  constructor(private router: Router) {
-    // TODO: Fetch the username from a service or state management
-    this.username = 'Utilizator'; // Placeholder
+  constructor(private router: Router, private userService: UserService) {
+  }
+  ngOnInit(): void {
+    this.getLoggedInUserSubscription = this.userService.getLoggedInUser().subscribe(user => {
+      this.user = user;
+    });
+  }
+  
+  getDisplayName(): string {
+    return this.user?.displayName || 'Utilizator';
+  }
+
+  ngOnDestroy(): void {
+    this.getLoggedInUserSubscription?.unsubscribe();
   }
 
   navigateToFeature(route: string, available: boolean): void {
