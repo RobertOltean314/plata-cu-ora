@@ -21,6 +21,6 @@ namespace PlataCuOra.Server.Domain.Entities
         [FirestoreProperty]
         public string Role { get; set; } = string.Empty;
 
-        public User(){}
+        public User() { }
     }
 }
