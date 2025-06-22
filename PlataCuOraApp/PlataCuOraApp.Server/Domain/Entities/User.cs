@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using System;
 
 namespace PlataCuOra.Server.Domain.Entities
 {
