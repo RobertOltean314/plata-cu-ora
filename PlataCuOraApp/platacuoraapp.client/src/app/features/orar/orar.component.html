@@ -1,131 +1,139 @@
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <button class="btn btn-outline-primary me-2" (click)="toggleEdit()">
-    {{ isEditable ? 'Salvează și validează' : 'Editare' }}
-  </button>
-  <span class="status" [class.validated]="!isEditable">
-    {{ isEditable ? 'În proces de editare' : 'Validat' }}
-  </span>
+<div class="orar-wrapper">
+  <div class="card-header">
+      <h2>Orar</h2>
+  </div><br>
+
+  <div  *ngIf="orar != null && orar.length > 0"class="orar-header d-flex justify-content-between align-items-center mb-3">
+    <button class="btn btn-outline-primary me-2" (click)="toggleEdit()">
+      {{ isEditable ? 'Salvează și validează' : 'Editare' }}
+    </button>
+    <span class="status" [class.validated]="!isEditable">
+      {{ isEditable ? 'În proces de editare' : 'Validat' }}
+    </span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table" >
+      <thead *ngIf="orar != null && orar.length > 0">
+        <tr>
+          <th>NrPost</th>
+          <th>DenPost</th>
+          <th>OreCurs</th>
+          <th>OreSem</th>
+          <th>OreLab</th>
+          <th>OreProi</th>
+          <th>Tip</th>
+          <th>Formatia</th>
+          <th>Ziua</th>
+          <th>ImparPar</th>
+          <th>Materia</th>
+          <th>SaptamanaInceput</th>
+          <th>TotalOre</th>
+          <th *ngIf="isEditable">Acțiuni</th>
+        </tr>
+      </thead>
+
+
+      <tbody *ngIf="orar.length === 0">
+        <tr>
+          <td colspan="14" class="text-center p-4">
+            <div class="d-flex flex-column align-items-center">
+              <p class="mb-3 text-muted">Nicio înregistrare în orar.</p>
+              <button class="btn btn-primary" (click)="addRow()">Adaugă orar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+
+
+      <tbody *ngIf="orar != null && orar.length > 0">
+        <tr *ngFor="let entry of orar; let i = index">
+          
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.nrPost" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.nrPost }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.denPost" class="form-control"></td>
+          <td *ngIf="!isEditable">{{ entry.denPost }}</td>
+          
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.oreCurs" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.oreCurs }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.oreSem" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.oreSem }}</td>
+          
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.oreLab" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.oreLab }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.oreProi" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.oreProi }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.tip" class="form-control"></td>
+          <td *ngIf="!isEditable">{{ entry.tip }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.formatia" class="form-control"></td>
+          <td *ngIf="!isEditable">{{ entry.formatia }}</td>
+
+          <!-- Dropdown pentru Ziua -->
+          <td *ngIf="isEditable">
+            <select [(ngModel)]="entry.ziua" class="form-control">
+              <option *ngFor="let zi of zileSaptamana" [value]="zi">{{ zi }}</option>
+            </select>
+          </td>
+          <td *ngIf="!isEditable">{{ entry.ziua }}</td>
+
+          <!-- Dropdown pentru ImparPar -->
+          <td *ngIf="isEditable">
+            <select [(ngModel)]="entry.imparPar" class="form-control">
+              <option *ngFor="let tip of tipuriSaptamana" [value]="tip">{{ tip }}</option>
+            </select>
+          </td>
+          <td *ngIf="!isEditable">{{ entry.imparPar }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.materia" class="form-control"></td>
+          <td *ngIf="!isEditable">{{ entry.materia }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.saptamanaInceput" class="form-control"></td>
+          <td *ngIf="!isEditable">{{ entry.saptamanaInceput }}</td>
+
+          <td *ngIf="isEditable"><input [(ngModel)]="entry.totalOre" class="form-control" type="number"></td>
+          <td *ngIf="!isEditable">{{ entry.totalOre }}</td>
+
+          <td *ngIf="isEditable">
+            <button class="btn btn-danger btn-sm" (click)="deleteRow(i)">Șterge</button>
+            <button class="btn btn-success btn-sm ms-2" (click)="saveEdit(i)">Salvează</button>
+          </td>
+        </tr>
+
+        <!-- Adăugare rând nou -->
+        <tr *ngIf="isEditable">
+          <td><input [(ngModel)]="newEntry.nrPost" class="form-control" type="number"></td>
+          <td><input [(ngModel)]="newEntry.denPost" class="form-control"></td>
+          <td><input [(ngModel)]="newEntry.oreCurs" class="form-control" type="number"></td>
+          <td><input [(ngModel)]="newEntry.oreSem" class="form-control" type="number"></td>
+          <td><input [(ngModel)]="newEntry.oreLab" class="form-control" type="number"></td>
+          <td><input [(ngModel)]="newEntry.oreProi" class="form-control" type="number"></td>
+          <td><input [(ngModel)]="newEntry.tip" class="form-control"></td>
+          <td><input [(ngModel)]="newEntry.formatia" class="form-control"></td>
+          <!-- Dropdown pentru Ziua -->
+          <td>
+            <select [(ngModel)]="newEntry.ziua" class="form-control">
+              <option *ngFor="let zi of zileSaptamana" [value]="zi">{{ zi }}</option>
+            </select>
+          </td>
+          <!-- Dropdown pentru ImparPar -->
+          <td>
+            <select [(ngModel)]="newEntry.imparPar" class="form-control">
+              <option *ngFor="let tip of tipuriSaptamana" [value]="tip">{{ tip }}</option>
+            </select>
+          </td>
+          <td><input [(ngModel)]="newEntry.materia" class="form-control"></td>
+          <td><input [(ngModel)]="newEntry.saptamanaInceput" class="form-control"></td>
+          <td><input [(ngModel)]="newEntry.totalOre" class="form-control" type="number"></td>
+          <td>
+            <button class="btn btn-success btn-sm" (click)="addRow()">Adaugă</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
-
-<table class="table table-bordered table-hover">
-  <thead>
-    <tr>
-      <th>NrPost</th>
-      <th>DenPost</th>
-      <th>OreCurs</th>
-      <th>OreSem</th>
-      <th>OreLab</th>
-      <th>OreProi</th>
-      <th>Tip</th>
-      <th>Formatia</th>
-      <th>Ziua</th>
-      <th>ImparPar</th>
-      <th>Materia</th>
-      <th>SaptamanaInceput</th>
-      <th>TotalOre</th>
-      <th *ngIf="isEditable">Acțiuni</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!--<tr *ngFor="let entry of orar; let i = index">
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.nrPost" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.nrPost }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.denPost" class="form-control"></td>
-      <td *ngIf="!isEditable">{{ entry.denPost }}</td>
-      
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.oreCurs" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.oreCurs }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.oreSem" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.oreSem }}</td>
-      
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.oreLab" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.oreLab }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.oreProi" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.oreProi }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.tip" class="form-control"></td>
-      <td *ngIf="!isEditable">{{ entry.tip }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.formatia" class="form-control"></td>
-      <td *ngIf="!isEditable">{{ entry.formatia }}</td>
-
-      
-      <td *ngIf="isEditable">
-        <select [(ngModel)]="entry.ziua" class="form-control">
-          <option *ngFor="let zi of zileSaptamana" [value]="zi">{{ zi }}</option>
-        </select>
-      </td>
-      <td *ngIf="!isEditable">{{ entry.ziua }}</td>
-
-      
-      <td *ngIf="isEditable">
-        <select [(ngModel)]="entry.imparPar" class="form-control">
-          <option *ngFor="let tip of tipuriSaptamana" [value]="tip">{{ tip }}</option>
-        </select>
-      </td>
-      <td *ngIf="!isEditable">{{ entry.imparPar }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.materia" class="form-control"></td>
-      <td *ngIf="!isEditable">{{ entry.materia }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.saptamanaInceput" class="form-control"></td>
-      <td *ngIf="!isEditable">{{ entry.saptamanaInceput }}</td>
-
-      <td *ngIf="isEditable"><input [(ngModel)]="entry.totalOre" class="form-control" type="number"></td>
-      <td *ngIf="!isEditable">{{ entry.totalOre }}</td>
-
-      <td *ngIf="isEditable">
-        <button class="btn btn-danger btn-sm" (click)="deleteRow(i)">Șterge</button>
-        <button class="btn btn-success btn-sm ms-2" (click)="saveEdit(i)">Salvează</button>
-      </td>
-    </tr>
-
-    
-    <tr *ngIf="isEditable">
-      <td><input [(ngModel)]="newEntry.nrPost" class="form-control" type="number"></td>
-      <td><input [(ngModel)]="newEntry.denPost" class="form-control"></td>
-      <td><input [(ngModel)]="newEntry.oreCurs" class="form-control" type="number"></td>
-      <td><input [(ngModel)]="newEntry.oreSem" class="form-control" type="number"></td>
-      <td><input [(ngModel)]="newEntry.oreLab" class="form-control" type="number"></td>
-      <td><input [(ngModel)]="newEntry.oreProi" class="form-control" type="number"></td>
-      <td><input [(ngModel)]="newEntry.tip" class="form-control"></td>
-      <td><input [(ngModel)]="newEntry.formatia" class="form-control"></td>
-      
-      <td>
-        <select [(ngModel)]="newEntry.ziua" class="form-control">
-          <option *ngFor="let zi of zileSaptamana" [value]="zi">{{ zi }}</option>
-        </select>
-      </td>
-      
-      <td>
-        <select [(ngModel)]="newEntry.imparPar" class="form-control">
-          <option *ngFor="let tip of tipuriSaptamana" [value]="tip">{{ tip }}</option>
-        </select>
-      </td>
-      <td><input [(ngModel)]="newEntry.materia" class="form-control"></td>
-      <td><input [(ngModel)]="newEntry.saptamanaInceput" class="form-control"></td>
-      <td><input [(ngModel)]="newEntry.totalOre" class="form-control" type="number"></td>
-      <td>
-        <button class="btn btn-success btn-sm" (click)="addRow()">Adaugă</button>
-      </td>
-    </tr>-->
-    <tr *ngFor="let entry of orar; let i = index">
-      <td>{{ entry.nrPost }}</td>
-      <td>{{ entry.denPost }}</td>
-      <td>{{ entry.oreCurs }}</td>
-      <td>{{ entry.oreSem }}</td>
-      <td>{{ entry.oreLab }}</td>
-      <td>{{ entry.oreProi }}</td>
-      <td>{{ entry.tip }}</td>
-      <td>{{ entry.formatia }}</td>
-      <td>{{ entry.ziua }}</td>
-      <td>{{ entry.imparPar }}</td>
-      <td>{{ entry.materia }}</td>
-      <td>{{ entry.saptamanaInceput }}</td>
-      <td>{{ entry.totalOre }}</td>
-    </tr>
-  </tbody>
-</table>

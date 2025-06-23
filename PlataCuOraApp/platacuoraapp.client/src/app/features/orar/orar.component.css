@@ -1,39 +1,135 @@
 .orar-wrapper {
-  max-width: 900px;
-  margin: 3rem auto;
-  background: var(--primary-white);
-  border-radius: 16px;
-  box-shadow: var(--shadow-light);
+  max-width: 1200px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 2rem;
 }
 
 .orar-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-}
-
-.orar-header h2 {
-  flex: 1;
-  color: var(--primary-blue);
+  margin-bottom: 1.5rem;
 }
 
 .status {
   font-weight: 600;
-  margin-left: 1rem;
-  color: var(--primary-red);
+  color: #ff4d4f;
 }
 
 .status.validated {
-  color: var(--success-green);
+  color: #52c41a;
 }
 
-.orar-table th, .orar-table td {
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background-color: #f9f9f9;
+}
+
+.table thead tr {
+  background-color: #fafafa;
+  border-bottom: 2px solid #e5e5e5;
+}
+
+.table th, .table td {
   text-align: center;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
   vertical-align: middle;
 }
 
-.orar-table input {
-  min-width: 90px;
-  padding: 4px 6px;
+.table input,
+.table select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.table tbody tr:hover {
+  background-color: #f1faff;
+}
+
+.table td button {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  margin: 0 2px;
+}
+
+button.btn-outline-primary {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+button.btn-outline-primary:hover {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+button.btn-success {
+  background-color: #52c41a;
+  border-color: #52c41a;
+}
+
+button.btn-success:hover {
+  background-color: #389e0d;
+  border-color: #389e0d;
+}
+
+button.btn-danger {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+button.btn-danger:hover {
+  background-color: #cf1322;
+  border-color: #cf1322;
+}
+
+.editing-row input,
+.editing-row select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.editing-row {
+  background-color: #fffbe6 !important;
+  transition: background-color 0.3s ease;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.editing-row button {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #343a40;
+  font-size: 2rem;
+  font-weight: 500;
 }

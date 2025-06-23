@@ -13,6 +13,7 @@ import { DeclarationGeneratorComponent } from './features/declaration-generator/
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrarComponent } from './features/orar/orar.component';
 import { CalendarComponent } from './features/calendar/calendar.component';
+import { StructuraSemestruComponent } from './features/structura-semestru/structura-semestru.component';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import { CalendarComponent } from './features/calendar/calendar.component';
     UserProfileComponent,
     NavbarComponent,
     DeclarationGeneratorComponent,
+    StructuraSemestruComponent,
   ],
   imports: [
     BrowserModule,
