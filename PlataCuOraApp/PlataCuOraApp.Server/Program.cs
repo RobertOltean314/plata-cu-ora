@@ -86,6 +86,7 @@ builder.Services.AddSingleton<IFirebaseConfig>(new FirebaseConfig
 });
 
 // Register repositories and services
+builder.Services.AddScoped<IFirebaseAuthWrapper, FirebaseAuthWrapper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, FirebaseAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
