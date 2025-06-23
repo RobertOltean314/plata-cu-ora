@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 import { OrarService } from '../services/orar-services/orar-service.service';
 import { OrarEntry } from '../../models/orar-entry.model';
@@ -13,19 +13,53 @@ import { OrarEntry } from '../../models/orar-entry.model';
   imports: [CommonModule, FormsModule]
 })
 export class OrarComponent implements OnInit {
-  orar: OrarEntry[] = [];
+  /*orar: OrarEntry[] = [];
   newEntry: OrarEntry = this.getEmptyEntry();
   isEditable = false;
-  selectedRow: number | null = null;
+  selectedRow: number | null = null;*/
+
+    orar: OrarEntry[] = [
+    {
+      nrPost: 1,
+      denPost: 'Profesor',
+      oreCurs: 2,
+      oreSem: 2,
+      oreLab: 2,
+      oreProi: 1,
+      tip: 'Curs',
+      formatia: 'A1',
+      ziua: 'Luni',
+      imparPar: 'Pară',
+      materia: 'Matematică',
+      saptamanaInceput: '2025-02-01',
+      totalOre: 7
+    },
+    {
+      nrPost: 2,
+      denPost: 'Asistent',
+      oreCurs: 0,
+      oreSem: 2,
+      oreLab: 2,
+      oreProi: 0,
+      tip: 'Seminar',
+      formatia: 'B2',
+      ziua: 'Marți',
+      imparPar: 'Impară',
+      materia: 'Fizică',
+      saptamanaInceput: '2025-02-02',
+      totalOre: 4
+    }
+  ];
 
   // Array pentru dropdown-uri
   zileSaptamana = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
   tipuriSaptamana = ['Pară', 'Impară'];
+  isEditable = false;
 
   constructor(private orarService: OrarService) {}
 
   ngOnInit() {
-    this.getOrar();
+    //this.getOrar();
   }
 
   getOrar() {
@@ -50,7 +84,7 @@ export class OrarComponent implements OnInit {
     };
   }
 
-  addRow() {
+  /*addRow() {
     this.orarService.add(this.newEntry).subscribe({
       next: (): void => {
         this.getOrar();
@@ -88,6 +122,10 @@ export class OrarComponent implements OnInit {
     if (this.isEditable) {
       // salvezi totul (opțional)
     }
+    this.isEditable = !this.isEditable;
+  }*/
+
+  toggleEdit() {
     this.isEditable = !this.isEditable;
   }
 }
