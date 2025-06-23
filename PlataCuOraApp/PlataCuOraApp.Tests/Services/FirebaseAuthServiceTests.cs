@@ -145,6 +145,50 @@ namespace PlataCuOraApp.Tests.Services
         }
 
         [Fact]
+        public async Task RegisterUserAsync_DatabaseSaveFails_DeletesFirebaseUserAndReturnsError()
+        {
+            // Arrange
+            var mockUserDto = new UserDTO { Id = "new-uid" };
+
+            _mockFirebaseAuth
+                .Setup(f => f.CreateUserAsync(It.IsAny<UserRecordArgs>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockUserDto);
+
+            _mockUserRepository
+                .Setup(r => r.CreateUserAsync(It.IsAny<User>()))
+                .ReturnsAsync(false);
+
+            _mockFirebaseAuth
+                .Setup(f => f.DeleteUserAsync(It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var service = new FirebaseAuthService(
+                _mockFirebaseAuth.Object,
+                _mockUserRepository.Object,
+                _mockFirebaseConfig.Object,
+                _httpClient,
+                _mockLogger.Object);
+
+            var request = new RegisterRequestDTO
+            {
+                Email = "new@example.com",
+                Password = "123456",
+                Name = "Test Name"
+            };
+
+            // Act
+            var result = await service.RegisterUserAsync(request);
+
+            // Assert
+            Assert.False(result.success);
+            Assert.Equal("Failed to create user in database.", result.error);
+
+            // Verificăm că DeleteUserAsync a fost apelat o dată cu ID-ul nou creat
+            _mockFirebaseAuth.Verify(f => f.DeleteUserAsync("new-uid"), Times.Once);
+        }
+
+        [Fact]
         public async Task LoginWithGoogleAsync_ValidToken_ReturnsSuccess()
         {
             // Arrange
