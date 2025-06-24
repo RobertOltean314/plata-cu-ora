@@ -51,8 +51,7 @@
                   {{ profile.declarant }} - {{ profile.universitate }} {{ profile.isActive ? '(Active)' : '' }}
                 </option>
               </select>
-
-              <!-- Aligned buttons in one row, all blue -->
+              
               <div class="d-flex gap-2 mb-3">
                 <button class="btn btn-primary"
                         (click)="selectedProfile && setActiveProfile()"
@@ -75,7 +74,14 @@
             <div *ngIf="editingProfile" class="border border-primary rounded p-3 mb-3">
               <form (ngSubmit)="saveProfile()">
                 <input [(ngModel)]="editingProfile.declarant" name="declarant" placeholder="Declarant" class="form-control mb-2" required>
-                <input [(ngModel)]="editingProfile.tip" name="tip" placeholder="Tip" class="form-control mb-2" required>
+                
+                <!-- Tip dropdown with placeholder-like option -->
+                <select [(ngModel)]="editingProfile.tip" name="tip" class="form-control mb-2" required>
+                  <option value="" disabled selected hidden>Tip</option>
+                  <option value="Titular">Titular</option>
+                  <option value="Asociat">Asociat</option>
+                </select>
+                
                 <input [(ngModel)]="editingProfile.directorDepartament" name="directorDepartament" placeholder="Director Departament" class="form-control mb-2">
                 <input [(ngModel)]="editingProfile.decan" name="decan" placeholder="Decan" class="form-control mb-2">
                 <input [(ngModel)]="editingProfile.universitate" name="universitate" placeholder="Universitate" class="form-control mb-2">
