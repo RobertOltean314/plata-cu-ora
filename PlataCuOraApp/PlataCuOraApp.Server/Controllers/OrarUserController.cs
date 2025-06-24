@@ -26,8 +26,8 @@ namespace PlataCuOraApp.Server.Controllers
         {
             var msg = await _service.AddAsync(userId, entry);
             return msg.Contains("already exists")
-                ? Conflict(msg)
-                : Ok(msg);
+                ? Conflict(new { message = msg })
+                : Ok(new { message = msg });
         }
 
         [HttpPut("{userId}")]
@@ -35,8 +35,8 @@ namespace PlataCuOraApp.Server.Controllers
         {
             var msg = await _service.UpdateAsync(userId, request.OldEntry, request.NewEntry);
             return msg.Contains("not found")
-                ? NotFound(msg)
-                : Ok(msg);
+                ? NotFound(new { message = msg })
+                : Ok(new { message = msg });
         }
 
         [HttpDelete("{userId}")]
@@ -44,8 +44,8 @@ namespace PlataCuOraApp.Server.Controllers
         {
             var msg = await _service.DeleteAsync(userId, entry);
             return msg.Contains("not found")
-                ? NotFound(msg)
-                : Ok(msg);
+                ? NotFound(new { message = msg })
+                : Ok(new { message = msg });
         }
     }
 }

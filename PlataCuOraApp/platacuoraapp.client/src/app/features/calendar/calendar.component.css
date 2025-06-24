@@ -1,103 +1,136 @@
 .calendar-container {
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 5px;
+  background-color: #f9fafb; /* fundal foarte deschis, aproape alb */
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.filter-section {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.filter-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  align-items: flex-end;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-  }
-
-.form-control {
+table {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.calendar-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
-}
-
-  .calendar-table th {
-    background-color: #f1f1f1;
-    padding: 10px;
-    text-align: left;
-    font-weight: 600;
-    border: 1px solid #dee2e6;
-  }
-
-  .calendar-table td {
-    padding: 10px;
-    border: 1px solid #dee2e6;
-  }
-
-.work-day {
+  border-collapse: separate;
+  border-spacing: 0;
   background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.weekend {
-  background-color: #f5f5f5;
-  color: #6c757d;
+thead {
+  background-color: #2c3e50; /* un albastru-inchis elegant */
+  color: #ecf0f1; /* text alb-crem deschis */
+  font-weight: 700;
 }
 
-tr:hover {
-  background-color: rgba(0, 123, 255, 0.05);
+thead th {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 2px solid #34495e; /* linie sub antet, ceva subtil */
 }
 
-@media (max-width: 768px) {
-  .filter-form {
-    flex-direction: column;
+tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f2f6fa; /* fundal usor albastrui pentru randurile pare */
+}
+
+tbody tr:hover {
+  background-color: #dbe9f7; /* highlight usor cand treci cu mouse-ul */
+}
+
+tbody td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e1e8ed; /* linie fina intre randuri */
+  vertical-align: middle;
+}
+
+select.form-select-sm {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+select.form-select-sm:focus {
+  border-color: #0d6efd;
+  outline: none;
+  box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+}
+
+/* Badge parity */
+.badge.bg-primary {
+  background-color: #3498db !important;
+  font-weight: 600;
+}
+
+.badge.bg-info.text-dark {
+  background-color: #1abc9c !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Status badge */
+.badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.badge.bg-warning.text-dark {
+  background-color: #f0ad4e !important;
+  color: #212529 !important;
+}
+
+/* Butoane */
+.btn-primary {
+  background-color: #2874a6;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1b4f72;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .calendar-container {
+    padding: 1rem;
   }
 
-  .form-group {
-    width: 100%;
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none; /* ascunde antet pe mobil */
+  }
+
+  tbody tr {
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    background: #fff;
+    padding: 1rem;
+  }
+
+  tbody td {
+    padding: 0.5rem 0;
+    border-bottom: none;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
   }
 }

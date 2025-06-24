@@ -100,13 +100,13 @@
                 </div>
               </div>
 
-              <div class="mb-4">
+              <!-- <div class="mb-4">
                 <label for="registerRole" class="form-label visually-hidden">Role</label>
                 <div class="input-group">
                   <span class="input-group-text">
                     <i class="bi bi-person-badge"></i>
                   </span>
-                  <select class="form-select" id="registerRole" name="registerRole" required #roleField="ngModel"
+                  <select class="form-select" id="registerRole" name="registerRole" disabled required #roleField="ngModel"
                     [(ngModel)]="model.role">
                     <option value="" disabled selected>Select Role</option>
                     <option value="user">User</option>
@@ -117,7 +117,7 @@
                 <div *ngIf="roleField.invalid && (roleField.dirty || roleField.touched)" class="text-danger small mt-1">
                   Role is required
                 </div>
-              </div>
+              </div> -->
 
               <div class="d-grid gap-2 mb-4">
                 <button type="submit" class="btn btn-primary py-2 fw-bold"

@@ -11,6 +11,9 @@ import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './core/navbar/navbar.component';
 import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { OrarComponent } from './features/orar/orar.component';
+import { CalendarComponent } from './features/calendar/calendar.component';
+import { StructuraSemestruComponent } from './features/structura-semestru/structura-semestru.component';
 
 
 @NgModule({
@@ -20,7 +23,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     RegisterComponent,
     UserProfileComponent,
     NavbarComponent,
-    DeclarationGeneratorComponent
+    DeclarationGeneratorComponent,
+    StructuraSemestruComponent,
   ],
   imports: [
     BrowserModule,
@@ -28,7 +32,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     FormsModule,
     HttpClientModule,
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    OrarComponent,
+    CalendarComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
