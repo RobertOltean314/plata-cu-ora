@@ -42,4 +42,14 @@ export class HolidayService {
   getWorkingDays(userId: string, start: string, end: string): Observable<CalendarDay[]> {
     return this.http.get<CalendarDay[]>(`/api/WorkingDays/${userId}/${start}/${end}`);
   }
+
+  genereazaDeclaratie(userId: string, zileLucrate: Date[]): Observable<Blob> {
+    return this.http.post(
+      `/api/declaratie/genereaza?userId=${encodeURIComponent(userId)}`, 
+      zileLucrate,
+      { responseType: 'blob' }
+    );
+  }
+
+
 }
