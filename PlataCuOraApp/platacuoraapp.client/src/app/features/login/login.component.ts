@@ -14,13 +14,14 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent implements OnInit, OnDestroy {
   model: LoginRequest;
   private loginSubscription?: Subscription;
+  private googleLoginSubscription?: Subscription;
   loginError: string = '';
   showPassword: boolean = false;
-  isGoogleLoading: boolean = false; // Add this
+  isGoogleLoading: boolean = false;
 
   constructor(
     private userService: UserService,
-    private authService: AuthService, // Add this
+    private authService: AuthService,
     private router: Router
   ) {
     this.model = {
@@ -54,7 +55,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginError = '';
     this.loginSubscription = this.userService.login(this.model).subscribe({
       next: (response) => {
-        if (response.token) {
+        if (response.token && response.user) {
           this.userService.setLoggedInUser(response.user);
           sessionStorage.setItem('token', response.token);
           this.router.navigate(['/']);
@@ -66,17 +67,22 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Add this method for Google login
   async signInWithGoogle(): Promise<void> {
     this.isGoogleLoading = true;
     this.loginError = '';
 
     try {
-      await this.authService.signInWithGoogle();
-      // The AuthService handles the backend call and user state
-      // Just navigate to home after successful authentication
-      this.router.navigate(['/']);
+      const authResult = await this.authService.signInWithGoogle();
+      
+      if (authResult && authResult.token && authResult.user) {
+        this.userService.setLoggedInUser(authResult.user);
+        sessionStorage.setItem('token', authResult.token);
+        this.router.navigate(['/']);
+      } else {
+        throw new Error('Authentication failed - no user data received');
+      }
     } catch (error: any) {
+      console.error('Google sign-in failed:', error);
       this.loginError = error.message || 'Google sign-in failed. Please try again.';
     } finally {
       this.isGoogleLoading = false;
@@ -85,5 +91,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.loginSubscription?.unsubscribe();
+    this.googleLoginSubscription?.unsubscribe();
   }
 }

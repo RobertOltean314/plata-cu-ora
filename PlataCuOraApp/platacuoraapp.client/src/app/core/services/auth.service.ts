@@ -9,22 +9,25 @@ import {
 import { FirebaseService } from './firebase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private userSubject = new BehaviorSubject<User | null>(null);
-  public user$: Observable<User | null> = this.userSubject.asObservable();
-  private apiUrl = 'http://localhost:5223/api'; 
+  private firebaseUserSubject = new BehaviorSubject<User | null>(null);
+  public firebaseUser$: Observable<User | null> = this.firebaseUserSubject.asObservable();
+  
+  // Keep this for compatibility with auth guard if needed
+  public user$: Observable<User | null> = this.firebaseUserSubject.asObservable();
 
   constructor(
     private firebaseService: FirebaseService,
     private http: HttpClient
   ) {
-    // Listen for authentication state changes
+    // Listen for Firebase authentication state changes
     onAuthStateChanged(this.firebaseService.auth, (user) => {
-      this.userSubject.next(user);
+      this.firebaseUserSubject.next(user);
     });
   }
 
@@ -37,23 +40,28 @@ export class AuthService {
       const result = await signInWithPopup(this.firebaseService.auth, provider);
       const idToken = await result.user.getIdToken();
 
+      // Send token to backend and get your app's user data and JWT
       const response = await this.sendTokenToBackend(idToken);
-
-      if (response && response.token) {
-        sessionStorage.setItem('token', response.token);
-      }
-
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in with Google:', error);
-      throw error;
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Popup was blocked by your browser. Please allow popups and try again.');
+      } else {
+        throw new Error('Google sign-in failed. Please try again.');
+      }
     }
   }
 
   async signOut(): Promise<void> {
     try {
       await signOut(this.firebaseService.auth);
-    } catch (error) {
+      this.firebaseUserSubject.next(null);
+    } catch (error: any) {
       console.error('Error signing out:', error);
       throw error;
     }
@@ -61,31 +69,34 @@ export class AuthService {
 
   private async sendTokenToBackend(idToken: string): Promise<any> {
     try {
-      return this.http.post(`${this.apiUrl}/user/google-login`,
-        JSON.stringify(idToken), 
+      // Send the token as a raw string to match your backend signature [FromBody] string idToken
+      const response = await this.http.post(`${environment.apiBaseUrl}/api/user/google-login`, 
+        JSON.stringify(idToken), // Send as raw string to match your controller
         {
           headers: { 'Content-Type': 'application/json' }
         }
       ).toPromise();
-    } catch (error) {
+      
+      return response;
+    } catch (error: any) {
       console.error('Error sending token to backend:', error);
       throw error;
     }
   }
 
-  getCurrentUser(): User | null {
-    return this.userSubject.value;
+  getCurrentFirebaseUser(): User | null {
+    return this.firebaseUserSubject.value;
   }
 
   async getCurrentUserToken(): Promise<string | null> {
-    const user = this.getCurrentUser();
+    const user = this.getCurrentFirebaseUser();
     if (user) {
       return await user.getIdToken();
     }
     return null;
   }
 
-  isAuthenticated(): boolean {
-    return !!this.getCurrentUser();
+  isFirebaseAuthenticated(): boolean {
+    return !!this.getCurrentFirebaseUser();
   }
 }

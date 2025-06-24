@@ -33,6 +33,24 @@ export class UserService {
       );
   }
 
+  // Add Google login method
+  googleLogin(idToken: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/api/user/google-login`, JSON.stringify(idToken), {
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .pipe(
+        map((response: any) => {
+          // If successful, update the user state immediately
+          if (response.user && response.token) {
+            sessionStorage.setItem('token', response.token);
+            this.setLoggedInUser(response.user);
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   register(model: RegisterRequest): Observable<void> {
     return this.http.post<void>(`${environment.apiBaseUrl}/api/user/register`, model)
       .pipe(
@@ -61,6 +79,14 @@ export class UserService {
           this.logout();
         }
       });
+  }
+
+  // Add method to get current user info from backend (useful for token validation)
+  getCurrentUserFromBackend(): Observable<User> {
+    return this.http.get<User>(`${environment.apiBaseUrl}/api/user/me`)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
   private getUserFromSession(): User | null {
