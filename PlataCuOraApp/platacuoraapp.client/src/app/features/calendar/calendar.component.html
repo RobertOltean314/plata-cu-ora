@@ -1,57 +1,111 @@
-<div class="calendar-container">
-  <h3>Propune Date (inceput si sfarsit luna curenta)</h3>
-  <div class="date-row">
-    <label>de la:</label>
-    <input 
-      type="date" 
-      [formControl]="startDateControl" 
-      [disabled]="status === 'Validat'"
-      (change)="onDateChange()"
-    >
-    <label>pana la:</label>
-    <input 
-      type="date" 
-      [formControl]="endDateControl" 
-      [disabled]="status === 'Validat'"
-      (change)="onDateChange()"
-    >
-    <button (click)="generateCalendar()" [disabled]="status === 'Validat'">Generare Calendar</button>
-    <span class="status">
-      stare:
-      <span 
-        [class.validated]="status === 'Validat'" 
-        [class.editing]="status === 'Editare'">
-        {{ status === 'Validat' ? 'Validat' : 'In editare' }}
+<div class="container my-4 calendar-container">
+  <h3 class="mb-4">Propune Date (început și sfârșit lună curentă)</h3>
+
+  <form [formGroup]="filterForm" class="row g-3 align-items-center mb-3">
+    <div class="col-auto">
+      <label for="startDate" class="form-label">De la:</label>
+      <input
+        id="startDate"
+        type="date"
+        class="form-control"
+        [formControl]="startDateControl"
+        [disabled]="status === 'Validat'"
+        (change)="onDateChange()"
+      />
+    </div>
+
+    <div class="col-auto">
+      <label for="endDate" class="form-label">Până la:</label>
+      <input
+        id="endDate"
+        type="date"
+        class="form-control"
+        [formControl]="endDateControl"
+        [disabled]="status === 'Validat'"
+        (change)="onDateChange()"
+      />
+    </div>
+
+    <div class="col-auto d-flex align-items-end">
+      <button
+        type="button"
+        class="btn btn-primary me-2"
+        (click)="generateCalendar()"
+        [disabled]="status === 'Validat'"
+      >
+        Generare Calendar
+      </button>
+      <button
+        type="button"
+        class="btn btn-success me-2"
+        (click)="validateCalendar()"
+        title="Generează calendarul înainte de validare"
+        [disabled]="status === 'Validat' || calendarData.length === 0"
+      >
+        Validează Calendar
+      </button>
+
+      <button 
+        type="button" 
+        class="btn btn-secondary" 
+        (click)="generatePdf()" >
+        Generează PO
+      </button>
+
+    </div>
+
+    <div class="col-auto ms-auto">
+      <span class="fw-semibold">Stare: </span>
+      <span
+        [ngClass]="{
+          'badge bg-success': status === 'Validat',
+          'badge bg-warning text-dark': status === 'Editare'
+        }"
+      >
+        {{ status === 'Validat' ? 'Validat' : 'În editare' }}
       </span>
-    </span>
-    <button 
-      (click)="validateCalendar()"
-      title="Genereaza calendarul inainte de validare"
-    >Valideaza Calendar</button>
-    <button>Genereaza PO</button>
+    </div>
+  </form>
+
+  <div *ngIf="calendarData.length > 0" class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Data</th>
+          <th>Zi săptămână</th>
+          <th>Zi lucrătoare</th>
+          <th>Par / Împar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let day of calendarData">
+          <td>{{ day.date | date:'dd.MM.yyyy' }}</td>
+          <td>{{ day.dayOfWeek }}</td>
+          <td>
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="day.workDayStatus"
+              (ngModelChange)="onWorkDayChange(day, $event)"
+              [disabled]="status === 'Validat'"
+            >
+              <option value="">--</option>
+              <option value="Zi lucratoare">Zi lucratoare</option>
+              <option value="Zi nelucratoare">Zi nelucratoare</option>
+            </select>
+          </td>
+          <td>
+            <ng-container *ngIf="day.isWorkingDay && day.parity">
+              {{ getParityDisplay(day.parity) }}
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  <table *ngIf="calendarData.length > 0">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Zi saptamana</th>
-        <th>Zi lucratoare</th>
-        <th>Par / Impar</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let day of calendarData">
-        <td>{{ formatDate(day.date) }}</td>
-        <td>{{ day.dayOfWeek }}</td>
-        <td>
-          <select [(ngModel)]="day.workDayStatus" (ngModelChange)="onWorkDayChange(day, $event)" [disabled]="status === 'Validat'">
-            <option value="">--</option>
-            <option value="Zi lucratoare">Zi lucratoare</option>
-            <option value="Zi nelucratoare">Zi nelucratoare</option>
-          </select>
-        </td>
-        <td>{{ day.parityType }}</td>
-      </tr>
-    </tbody>
-  </table>
+
+  <div *ngIf="loading" class="text-center mt-3">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 </div>
