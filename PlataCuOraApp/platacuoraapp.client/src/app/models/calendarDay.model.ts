@@ -6,4 +6,5 @@ export interface CalendarDay {
     isHoliday: boolean;
     holidayName?: string;
     weekNumber?: number;
-  }
+    workDayStatus?: '' | 'Zi lucratoare' | 'Zi nelucratoare';
+}

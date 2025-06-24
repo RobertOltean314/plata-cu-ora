@@ -9,6 +9,7 @@ import { CalendarComponent } from './features/calendar/calendar.component';
 import { HomepageComponent } from './features/homepage/homepage.component';
 import { DeclarationGeneratorComponent } from './features/declaration-generator/declaration-generator.component';
 import { OrarComponent } from './features/orar/orar.component';
+import { StructuraSemestruComponent } from './features/structura-semestru/structura-semestru.component';
 
 
 const routes: Routes = [
@@ -35,6 +36,11 @@ const routes: Routes = [
   {
     path: 'declaration-generator',
     component: DeclarationGeneratorComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'structura-an',
+    component: StructuraSemestruComponent,
     canActivate: [AuthGuard]
   },
   {

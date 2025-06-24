@@ -1,0 +1,113 @@
+.centered-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;    
+  text-align: center;
+  margin: 3rem 0;        
+  padding: 1.5rem;    
+  max-width: 400px;       
+  margin-left: auto;      
+  margin-right: auto;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+}
+
+h2.mb-3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: left;
+  margin-bottom: 2rem !important;
+}
+
+.centered-message {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.table {
+  background-color: #fefefe;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.table thead th {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+  text-align: center;
+}
+
+input.form-control, select.form-control {
+  height: 36px;
+  font-size: 0.9rem;
+  padding: 0.375rem 0.75rem;
+}
+
+button.btn {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.btn-sm {
+  min-width: 80px;
+}
+
+.btn-primary, .btn-success, .btn-warning, .btn-secondary, .btn-danger {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover, 
+.btn-success:hover, 
+.btn-warning:hover, 
+.btn-secondary:hover, 
+.btn-danger:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .table thead {
+    display: none;
+  }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem;
+  }
+
+  .table td {
+    text-align: left;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  .table td::before {
+    position: absolute;
+    top: 0.5rem;
+    left: 1
+  }}

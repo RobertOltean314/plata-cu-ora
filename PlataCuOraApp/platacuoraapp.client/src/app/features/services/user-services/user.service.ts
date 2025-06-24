@@ -16,6 +16,11 @@ export class UserService {
   constructor(private http: HttpClient) {
     this.validateToken();
   }
+ 
+  getUserId(): string | null {
+    const id = this.currentUserSubject.value?.id ?? null;
+    return id !== null ? id.toString() : null;
+  }
 
   setLoggedInUser(user: User) {
     sessionStorage.setItem('user', JSON.stringify(user));

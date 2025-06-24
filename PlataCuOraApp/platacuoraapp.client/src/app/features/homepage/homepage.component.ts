@@ -26,13 +26,13 @@ export class HomepageComponent implements OnInit, OnDestroy {
       route: '/calendar',
       available: true
     },
-    {
-      title: 'Generator Declarații',
-      description: 'Generați declarații pentru perioada selectată (în curând)',
-      icon: 'bi bi-file-earmark-pdf',
-      route: '/declaration-generator',
-      available: true
-    },
+    // {
+    //   title: 'Generator Declarații',
+    //   description: 'Generați declarații pentru perioada selectată (în curând)',
+    //   icon: 'bi bi-file-earmark-pdf',
+    //   route: '/declaration-generator',
+    //   available: true
+    // },
     {
       title: 'Profil',
       description: 'Gestionați datele profilului dvs.',
@@ -45,6 +45,13 @@ export class HomepageComponent implements OnInit, OnDestroy {
       description: 'Vizualizați și editați lista orelor ',
       icon: 'bi bi-clock-history', // poți schimba cu orice icon Bootstrap vrei
       route: '/orar',
+      available: true
+    },
+    {
+      title: 'Structura an universitar',
+      description: 'Vizualizați și editați structura anului universitar ',
+      icon: 'bi bi-clipboard', 
+      route: '/structura-an',
       available: true
     }
   ];

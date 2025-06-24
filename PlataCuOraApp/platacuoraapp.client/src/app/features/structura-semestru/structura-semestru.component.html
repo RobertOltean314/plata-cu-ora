@@ -1,0 +1,83 @@
+<div class="container mt-4">
+  <h2 class="mb-3">Structura Semestrului</h2>
+
+  <div *ngIf="paritati.length === 0 && !addingNew" class="centered-message">
+    <p class="mb-3 fs-5">Nu există date pentru structura semestrului.</p>
+    <button class="btn btn-primary" (click)="startAdd()">Adaugă prima săptămână</button>
+  </div>
+
+  <div *ngIf="paritati.length > 0" class="d-flex justify-content-between align-items-center mb-3">
+    <button 
+        [ngClass]="editMode ? 'btn btn-outline-danger' : 'btn btn-outline-primary'" 
+        (click)="toggleEditMode()">
+        {{ editMode ? 'Închide' : 'Editează' }}
+    </button>
+
+    <div *ngIf="editStatus === 'editing'" class="text-danger fw-semibold">
+        🔧 În editare
+    </div>
+    <div *ngIf="editStatus === 'validated'" class="text-primary fw-semibold">
+        ✅ Validat
+    </div>
+  </div>
+
+  <table *ngIf="paritati.length > 0 || addingNew" class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Săptămână</th>
+        <th>Data</th>
+        <th>Paritate</th>
+        <!-- <th>Acțiuni</th> -->
+        <th *ngIf="editMode">Acțiuni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="addingNew">
+        <td><input class="form-control" [(ngModel)]="newEntry.sapt" placeholder="S01"/></td>
+        <td><input class="form-control" [(ngModel)]="newEntry.data" placeholder="dd.mm.yyyy"/></td>
+        <td>
+          <select class="form-control" [(ngModel)]="newEntry.paritate">
+            <option value="Pară">Pară</option>
+            <option value="Impară">Impară</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-success btn-sm me-2" (click)="saveNew()">Salvează</button>
+          <button class="btn btn-secondary btn-sm" (click)="cancelAdd()">Anulează</button>
+        </td>
+      </tr>
+
+      <tr *ngFor="let p of paritati; let i = index">
+        <ng-container *ngIf="editIndex !== i">
+          <td>{{ p.sapt }}</td>
+          <td>{{ p.data }}</td>
+          <td>{{ p.paritate }}</td>
+          <td *ngIf="editMode">
+            <button class="btn btn-warning btn-sm me-2" (click)="startEdit(i)">Editează</button>
+            <button class="btn btn-danger btn-sm" (click)="deleteParitate(p)">Șterge</button>
+          </td>
+        </ng-container>
+
+        <ng-container *ngIf="editIndex === i">
+          <td><input class="form-control" [(ngModel)]="editEntry.sapt" /></td>
+          <td><input class="form-control" [(ngModel)]="editEntry.data" /></td>
+          <td>
+            <select class="form-control" [(ngModel)]="editEntry.paritate">
+              <option value="Pară">Pară</option>
+              <option value="Impară">Impară</option>
+            </select>
+          </td>
+
+          <td *ngIf="editMode">
+            <button class="btn btn-warning btn-sm me-2" (click)="startEdit(i)">Editează</button>
+            <button class="btn btn-danger btn-sm" (click)="deleteParitate(p)">Șterge</button>
+          </td>
+        </ng-container>
+      </tr>
+    </tbody>
+  </table>
+
+  <button *ngIf="paritati.length > 0" class="btn btn-primary mt-2" (click)="startAdd()">Adaugă săptămână</button>
+
+</div>
+
