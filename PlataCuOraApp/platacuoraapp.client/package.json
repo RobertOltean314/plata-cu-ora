@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@ng-bootstrap/ng-bootstrap": "^18.0.0",
+    "@types/firebase": "^3.2.3",
     "bootstrap-icons": "^1.13.1",
     "firebase": "^11.9.1",
     "jest-editor-support": "*",

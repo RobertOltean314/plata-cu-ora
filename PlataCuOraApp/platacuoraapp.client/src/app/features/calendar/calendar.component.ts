@@ -106,14 +106,12 @@ export class CalendarComponent implements OnInit {
     return date.toISOString().substring(0, 10);
   }
 
-
-  generatePdf() {
+generatePdf() {
   if (!this.userId) {
     alert('User ID not found!');
     return;
   }
 
-  // Extrage doar zilele lucrătoare (workDayStatus === 'Zi lucratoare')
   const zileLucrate: Date[] = this.calendarData
     .filter(day => day.workDayStatus === 'Zi lucratoare')
     .map(day => day.date);
@@ -123,22 +121,40 @@ export class CalendarComponent implements OnInit {
     return;
   }
 
-  // Trimite cererea POST către backend
-  this.holidayService.genereazaDeclaratie(this.userId, zileLucrate).subscribe({
+  const firstDay = this.formatToMMDDYYYY(new Date(this.startDateControl.value));
+  const lastDay = this.formatToMMDDYYYY(new Date(this.endDateControl.value));
+
+  this.holidayService.genereazaDeclaratie(this.userId, zileLucrate, firstDay, lastDay).subscribe({
     next: (response) => {
-      // Response este un blob PDF => îl descărcăm
       const blob = new Blob([response], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'declaratie.pdf';
-      a.click();
-      window.URL.revokeObjectURL(url);
+      window.open(url);  //  browserul face preview PDF
+      // pt download
+      // const a = document.createElement('a');
+      // a.href = url;
+      // a.download = 'declaratie.pdf';
+      // a.click();
+      // window.URL.revokeObjectURL(url);
     },
     error: (err) => {
       alert('Eroare la generarea PDF: ' + err.message);
     }
   });
 }
+
+  formatToMMDDYYYY(date: Date): string {
+    const mm = ('0' + (date.getMonth() + 1)).slice(-2);
+    const dd = ('0' + date.getDate()).slice(-2);
+    const yyyy = date.getFullYear();
+    return `${mm}.${dd}.${yyyy}`;
+  }
+
+
+
+formatDateForBackend(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-'); // from yyyy-MM-dd
+  return `${day}.${month}.${year}`;              // to dd.MM.yyyy
+}
+
 
 }

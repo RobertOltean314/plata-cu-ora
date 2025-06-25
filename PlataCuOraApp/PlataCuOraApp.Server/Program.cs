@@ -17,8 +17,15 @@ using PlataCuOraApp.Server.Services.Implementation;
 using PlataCuOraApp.Server.Services.Interfaces;
 using PlataCuOraApp.Server.Services;
 using PlataCuOraApp.Server.Repositories;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var cultureInfo = new CultureInfo("ro-RO");
+cultureInfo.DateTimeFormat.ShortDatePattern = "dd.MM.yyyy";
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
 
 // Set up logging
 builder.Logging.ClearProviders();
@@ -103,6 +110,10 @@ builder.Services.AddScoped<IWorkingDaysRepository, WorkingDaysRepository>();
 builder.Services.AddScoped<IWorkingDaysService, WorkingDaysService>();
 
 builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IHolidaysService, HolidaysService>();
+
 
 
 // Configure JWT authentication

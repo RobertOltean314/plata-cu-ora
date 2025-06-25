@@ -30,7 +30,7 @@ public class DeclaratieService : IDeclaratieService
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
     }
 
-    public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate)
+    public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate, DateTime firstDay, DateTime lastDay)
     {
         _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
 
@@ -58,13 +58,13 @@ public class DeclaratieService : IDeclaratieService
             Departament = user.Departament
         };
 
-        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati);
+        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati, firstDay, lastDay);
 
         _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
         return pdf;
     }
 
-    private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
+    private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati, DateTime firstDay, DateTime lastDay)
     {
         using var ms = new MemoryStream();
         var doc = new Document(PageSize.A4.Rotate(), 20f, 20f, 20f, 20f);
@@ -72,7 +72,7 @@ public class DeclaratieService : IDeclaratieService
         doc.Open();
 
         AdaugaHeader(doc, user);
-        AdaugaTitluSiParagraf(doc, user, zileLucrate);
+        AdaugaTitluSiParagraf(doc, user, zileLucrate, firstDay, lastDay);
         AdaugaTabelOre(doc, ore, zileLucrate, paritati);
         AdaugaTabelCoeficienti(doc);
         AdaugaParagrafLegal(doc);
@@ -203,7 +203,7 @@ public class DeclaratieService : IDeclaratieService
         doc.Add(new Paragraph(" "));
     }
 
-    private void AdaugaTitluSiParagraf(Document doc, InfoUserDTO user, List<DateTime> zileLucrate)
+    private void AdaugaTitluSiParagraf(Document doc, InfoUserDTO user, List<DateTime> zileLucrate, DateTime firstDay, DateTime lastDay)
     {
         var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
         var fontBoldUnderline = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
@@ -216,8 +216,8 @@ public class DeclaratieService : IDeclaratieService
         doc.Add(titlu);
 
         var primaZi = zileLucrate.First();
-        var dataStart = new DateTime(primaZi.Year, primaZi.Month, 1).ToString("dd.MM.yyyy");
-        var dataEnd = new DateTime(primaZi.Year, primaZi.Month, DateTime.DaysInMonth(primaZi.Year, primaZi.Month)).ToString("dd.MM.yyyy");
+        var dataStart = firstDay.ToString("dd.MM.yyyy");
+        var dataEnd = lastDay.ToString("dd.MM.yyyy");
 
         var paragraf = new Paragraph();
         paragraf.Add(new Chunk("Subsemnatul(a), ", fontNormal));
@@ -317,7 +317,7 @@ public class DeclaratieService : IDeclaratieService
         table.AddCell(new PdfPCell(new Phrase("Data", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(new PdfPCell(new Phrase("Numar ore fizice", fontBold)) { Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(new PdfPCell(new Phrase("Tip", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
-        table.AddCell(new PdfPCell(new Phrase("Coef.", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+        table.AddCell(new PdfPCell(new Phrase("Coef.**", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(new PdfPCell(new Phrase("Nr. ore", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(new PdfPCell(new Phrase("Anul, grupa, semigrupa", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
 
@@ -345,45 +345,57 @@ public class DeclaratieService : IDeclaratieService
         .ToList();
 
         var grupuriFinale = orePerZiPost
-        .GroupBy(x => x.NrPost + " " + x.DenPost)
+        .GroupBy(x => x.NrPost)
         .ToList();
 
         foreach (var grup in grupuriFinale)
         {
-            var randuri = grup.ToList();
-            bool isFirst = true;
-            int rowspan = randuri.Count;
-
-            foreach (var rand in randuri)
-            {
-                var zi = rand.Zi;
-                var tip = rand.Tip;
-
-                int c = rand.OreCurs;
-                int s = rand.OreSem;
-                int la = rand.OreLab;
-                int p = rand.OreProi;
-
-                double coef = tip switch
+            var subgrupuri = grup
+                .GroupBy(x => new
                 {
-                    "LR" => c > 0 ? 2.0 : 1.0,
-                    "LE" => c > 0 ? 2.5 : 1.25,
-                    "MR" => c > 0 ? 2.5 : 1.5,
-                    "ME" => c > 0 ? 3.125 : 1.875,
-                    _ => 1.0
-                };
+                    x.Zi,
+                    Coef = x.Tip switch
+                    {
+                        "LR" => x.OreCurs > 0 ? 2.0 : 1.0,
+                        "LE" => x.OreCurs > 0 ? 2.5 : 1.25,
+                        "MR" => x.OreCurs > 0 ? 2.5 : 1.5,
+                        "ME" => x.OreCurs > 0 ? 3.125 : 1.875,
+                        _ => 1.0
+                    },
+                    x.Tip
+                })
+                .ToList();
 
-                double oreTotal = (c + s + la + p) * coef;
+            int rowspan = subgrupuri.Count;
+            bool isFirst = true;
 
-                totalC += c;
-                totalS += s;
-                totalLA += la;
-                totalP += p;
+            var denPostConcat = string.Join(", ", grup.Select(g => g.DenPost).Distinct());
+
+            foreach (var subgrup in subgrupuri)
+            {
+                int totalC1 = subgrup.Sum(o => o.OreCurs);
+                int totalS1 = subgrup.Sum(o => o.OreSem);
+                int totalLA1 = subgrup.Sum(o => o.OreLab);
+                int totalP1 = subgrup.Sum(o => o.OreProi);
+
+                totalC += totalC1;
+                totalS += totalS1;
+                totalLA += totalLA1;
+                totalP += totalP1;
+
+                var zi = subgrup.Key.Zi;
+                var coef = subgrup.Key.Coef;
+                var tip = subgrup.Key.Tip;
+
+                var formatiaConcat = string.Join(", ", subgrup.Select(o => o.Formatia).Distinct());
+
+                double oreTotal = (totalC1 + totalS1 + totalLA1 + totalP1) * coef;
                 totalOreCoef += oreTotal;
 
                 if (isFirst)
                 {
-                    table.AddCell(new PdfPCell(new Phrase(grup.Key, fontNormal))
+                    string textPozitie = $"{grup.Key}\n{denPostConcat}";
+                    table.AddCell(new PdfPCell(new Phrase(textPozitie, fontNormal))
                     {
                         Rowspan = rowspan,
                         VerticalAlignment = Element.ALIGN_MIDDLE,
@@ -392,17 +404,15 @@ public class DeclaratieService : IDeclaratieService
                     isFirst = false;
                 }
 
-
                 table.AddCell(new PdfPCell(new Phrase(zi.ToString("dd.MM.yyyy"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(c > 0 ? c.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(s > 0 ? s.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(la > 0 ? la.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(p > 0 ? p.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(totalC1 > 0 ? totalC1.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(totalS1 > 0 ? totalS1.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(totalLA1 > 0 ? totalLA1.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                table.AddCell(new PdfPCell(new Phrase(totalP1 > 0 ? totalP1.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(tip, fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(coef.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 table.AddCell(new PdfPCell(new Phrase(oreTotal.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                table.AddCell(new PdfPCell(new Phrase(rand.Formatia, fontNormal)));
-
+                table.AddCell(new PdfPCell(new Phrase(formatiaConcat, fontNormal)) { HorizontalAlignment = Element.ALIGN_LEFT });
             }
         }
 
@@ -423,7 +433,6 @@ public class DeclaratieService : IDeclaratieService
         table.AddCell(emptyCell);
         table.AddCell(new PdfPCell(new Phrase(totalOreCoef.ToString("0.###"), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
         table.AddCell(emptyCell);
-
 
         PdfPCell totalFinalCell = new PdfPCell(new Phrase(totalGeneral.ToString(), fontBold))
         {
@@ -448,6 +457,154 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Add(table);
     }
+
+
+    //private void AdaugaTabelOre(Document doc, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
+    //{
+    //    var fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+    //    var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+
+    //    var table = new PdfPTable(10) { WidthPercentage = 100 };
+    //    table.SetWidths(new float[] { 9, 10, 5, 5, 5, 5, 5, 5, 6, 25 });
+
+    //    table.AddCell(new PdfPCell(new Phrase("Poz. din stat", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Data", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Numar ore fizice", fontBold)) { Colspan = 4, HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Tip", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Coef.", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Nr. ore", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase("Anul, grupa, semigrupa", fontBold)) { Rowspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE, BackgroundColor = BaseColor.LIGHT_GRAY });
+
+    //    foreach (var sub in new[] { "C", "S", "L/A", "P" })
+    //        table.AddCell(new PdfPCell(new Phrase(sub, fontBold)) { BackgroundColor = BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER });
+
+    //    int totalC = 0, totalS = 0, totalLA = 0, totalP = 0;
+    //    double totalOreCoef = 0;
+
+    //    var orePerZiPost = FiltreazaOreGeneric(ore, paritati, zileLucrate, (o, zi) => new
+    //    {
+    //        Zi = zi.Date,
+    //        o.NrPost,
+    //        o.DenPost,
+    //        o.Tip,
+    //        o.Formatia,
+    //        o.OreCurs,
+    //        o.OreSem,
+    //        o.OreLab,
+    //        o.OreProi
+    //    })
+    //    .Distinct()
+    //    .OrderBy(x => x.NrPost)
+    //    .ThenBy(x => x.Zi)
+    //    .ToList();
+
+    //    var grupuriFinale = orePerZiPost
+    //    .GroupBy(x => x.NrPost)
+    //    .ToList();
+
+    //    foreach (var grup in grupuriFinale)
+    //    {
+    //        var randuri = grup.ToList();
+    //        bool isFirst = true;
+    //        int rowspan = randuri.Count;
+
+    //        var denPostConcat = string.Join(", ", grup.Select(g => g.DenPost).Distinct());
+
+    //        foreach (var rand in randuri)
+    //        {
+    //            var zi = rand.Zi;
+    //            var tip = rand.Tip;
+
+    //            int c = rand.OreCurs;
+    //            int s = rand.OreSem;
+    //            int la = rand.OreLab;
+    //            int p = rand.OreProi;
+
+    //            double coef = tip switch
+    //            {
+    //                "LR" => c > 0 ? 2.0 : 1.0,
+    //                "LE" => c > 0 ? 2.5 : 1.25,
+    //                "MR" => c > 0 ? 2.5 : 1.5,
+    //                "ME" => c > 0 ? 3.125 : 1.875,
+    //                _ => 1.0
+    //            };
+
+    //            double oreTotal = (c + s + la + p) * coef;
+
+    //            totalC += c;
+    //            totalS += s;
+    //            totalLA += la;
+    //            totalP += p;
+    //            totalOreCoef += oreTotal;
+
+    //            if (isFirst)
+    //            {
+    //                string textPozitie = $"{grup.Key}\n{denPostConcat}";
+    //                table.AddCell(new PdfPCell(new Phrase(textPozitie, fontNormal))
+    //                {
+    //                    Rowspan = rowspan,
+    //                    VerticalAlignment = Element.ALIGN_MIDDLE,
+    //                    HorizontalAlignment = Element.ALIGN_CENTER
+    //                });
+
+    //                isFirst = false;
+    //            }
+
+    //            table.AddCell(new PdfPCell(new Phrase(zi.ToString("dd.MM.yyyy"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(c > 0 ? c.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(s > 0 ? s.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(la > 0 ? la.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(p > 0 ? p.ToString() : "", fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(tip, fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(coef.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(oreTotal.ToString("0.###"), fontNormal)) { HorizontalAlignment = Element.ALIGN_CENTER });
+    //            table.AddCell(new PdfPCell(new Phrase(rand.Formatia, fontNormal)));
+
+    //        }
+    //    }
+
+    //    int totalGeneral = totalC + totalS + totalLA + totalP;
+
+    //    PdfPCell emptyCell = new PdfPCell(new Phrase(""))
+    //    {
+    //        BackgroundColor = BaseColor.LIGHT_GRAY,
+    //        Border = Rectangle.BOX
+    //    };
+
+    //    table.AddCell(new PdfPCell(new Phrase("TOTAL", fontBold)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase(totalC.ToString(), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase(totalS.ToString(), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase(totalLA.ToString(), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(new PdfPCell(new Phrase(totalP.ToString(), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(emptyCell);
+    //    table.AddCell(emptyCell);
+    //    table.AddCell(new PdfPCell(new Phrase(totalOreCoef.ToString("0.###"), fontBold)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LIGHT_GRAY });
+    //    table.AddCell(emptyCell);
+
+
+    //    PdfPCell totalFinalCell = new PdfPCell(new Phrase(totalGeneral.ToString(), fontBold))
+    //    {
+    //        Colspan = 4,
+    //        HorizontalAlignment = Element.ALIGN_CENTER,
+    //        BackgroundColor = BaseColor.LIGHT_GRAY,
+    //        Border = Rectangle.BOX
+    //    };
+
+    //    PdfPCell noBorderCell = new PdfPCell(new Phrase(""))
+    //    {
+    //        Border = Rectangle.NO_BORDER
+    //    };
+
+    //    table.AddCell(noBorderCell);
+    //    table.AddCell(noBorderCell);
+    //    table.AddCell(totalFinalCell);
+    //    table.AddCell(noBorderCell);
+    //    table.AddCell(noBorderCell);
+    //    table.AddCell(noBorderCell);
+    //    table.AddCell(noBorderCell);
+
+    //    doc.Add(table);
+    //}
 
     private static DayOfWeek? ConvertZiTextToDayOfWeek(string zi) => zi.Trim().ToLower() switch
     {

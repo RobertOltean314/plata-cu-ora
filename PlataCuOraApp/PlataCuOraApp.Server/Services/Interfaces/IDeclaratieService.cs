@@ -6,6 +6,7 @@ namespace PlataCuOraApp.Server.Services
 {
     public interface IDeclaratieService
     {
-        Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate);
+        Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate, DateTime firstDay, DateTime lastDay);
+
     }
 }
