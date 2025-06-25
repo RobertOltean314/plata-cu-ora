@@ -541,4 +541,37 @@ public class DeclarationService : IDeclarationService
         return null;
     }
 
+    // Metoda pentru testare
+
+    public List<(DateTime ziua, string tip, int c, int s, int la, int p, double coef, double total)> TestCalculateFinalRows(
+        List<UserScheduleDTO> schedule,
+        List<WeekParityDTO> parities,
+        List<DateTime> workedDays)
+    {
+        var rows = FilterHoursGeneric(schedule, parities, workedDays, (o, zi) => new
+        {
+            Zi = zi.Date,
+            Tip = o.Tip,
+            C = o.OreCurs,
+            S = o.OreSem,
+            LA = o.OreLab,
+            P = o.OreProi
+        }).ToList();
+
+        return rows.Select(r =>
+        {
+            double coef = r.Tip switch
+            {
+                "LR" => r.C > 0 ? 2.0 : 1.0,
+                "LE" => r.C > 0 ? 2.5 : 1.25,
+                "MR" => r.C > 0 ? 2.5 : 1.5,
+                "ME" => r.C > 0 ? 3.125 : 1.875,
+                _ => 1.0
+            };
+
+            double total = (r.C + r.S + r.LA + r.P) * coef;
+
+            return (r.Zi, r.Tip, r.C, r.S, r.LA, r.P, coef, total);
+        }).ToList();
+    }
 }
