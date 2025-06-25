@@ -30,14 +30,14 @@ public class DeclaratieService : IDeclaratieService
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
     }
 
-    public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate)
+    // Updated: now receives intervalStart and intervalEnd
+    public async Task<byte[]> GenereazaDeclaratieAsync(string userId, List<DateTime> zileLucrate, DateTime intervalStart, DateTime intervalEnd)
     {
         _logger.LogInformation("Starting declaration generation for userId={UserId}, days={Zile}", userId, zileLucrate);
 
         var user = await _infoUserRepo.GetActiveInfoAsync(userId);
         if (user == null)
             throw new Exception("User not found.");
-
 
         var orar = await _orarUserRepo.GetAllAsync(userId);
         if (orar == null || !orar.Any())
@@ -58,13 +58,14 @@ public class DeclaratieService : IDeclaratieService
             Departament = user.Departament
         };
 
-        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati);
+        var pdf = GenereazaPdf(userDto, orar, zileLucrate, paritati, intervalStart, intervalEnd);
 
         _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
         return pdf;
     }
 
-    private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati)
+    // Updated: receives intervalStart and intervalEnd
+    private byte[] GenereazaPdf(InfoUserDTO user, List<OrarUserDTO> ore, List<DateTime> zileLucrate, List<ParitateSaptamanaDTO> paritati, DateTime intervalStart, DateTime intervalEnd)
     {
         using var ms = new MemoryStream();
         var doc = new Document(PageSize.A4.Rotate(), 20f, 20f, 20f, 20f);
@@ -72,7 +73,7 @@ public class DeclaratieService : IDeclaratieService
         doc.Open();
 
         AdaugaHeader(doc, user);
-        AdaugaTitluSiParagraf(doc, user, zileLucrate);
+        AdaugaTitluSiParagraf(doc, user, intervalStart, intervalEnd);
         AdaugaTabelOre(doc, ore, zileLucrate, paritati);
         AdaugaTabelCoeficienti(doc);
         AdaugaParagrafLegal(doc);
@@ -81,6 +82,35 @@ public class DeclaratieService : IDeclaratieService
         doc.Close();
         return ms.ToArray();
     }
+
+    // Updated: receives intervalStart and intervalEnd
+    private void AdaugaTitluSiParagraf(Document doc, InfoUserDTO user, DateTime intervalStart, DateTime intervalEnd)
+    {
+        var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+        var fontBoldUnderline = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+        fontBoldUnderline.SetStyle(Font.UNDERLINE);
+
+        var titlu = new Paragraph("DECLARATIE", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12))
+        {
+            Alignment = Element.ALIGN_CENTER
+        };
+        doc.Add(titlu);
+
+        var dataStart = intervalStart.ToString("dd.MM.yyyy");
+        var dataEnd = intervalEnd.ToString("dd.MM.yyyy");
+
+        var paragraf = new Paragraph();
+        paragraf.Add(new Chunk("Subsemnatul(a), ", fontNormal));
+        paragraf.Add(new Chunk(user.Declarant ?? "", fontBoldUnderline));
+        paragraf.Add(new Chunk(", am suplinit in intervalul ", fontNormal));
+        paragraf.Add(new Chunk($"{dataStart} - {dataEnd}", fontBoldUnderline));
+        paragraf.Add(new Chunk($" in {user.Departament ?? ""} activitati didactice dupa cum urmeaza:", fontNormal));
+        paragraf.SpacingBefore = 10f;
+        paragraf.SpacingAfter = 10f;
+        doc.Add(paragraf);
+    }
+
+    // The rest of your code remains unchanged
 
     private IEnumerable<T> FiltreazaOreGeneric<T>(
     List<OrarUserDTO> orar,
@@ -201,33 +231,6 @@ public class DeclaratieService : IDeclaratieService
 
         doc.Add(headerTable);
         doc.Add(new Paragraph(" "));
-    }
-
-    private void AdaugaTitluSiParagraf(Document doc, InfoUserDTO user, List<DateTime> zileLucrate)
-    {
-        var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 9);
-        var fontBoldUnderline = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
-        fontBoldUnderline.SetStyle(Font.UNDERLINE);
-
-        var titlu = new Paragraph("DECLARATIE", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12))
-        {
-            Alignment = Element.ALIGN_CENTER
-        };
-        doc.Add(titlu);
-
-        var primaZi = zileLucrate.First();
-        var dataStart = new DateTime(primaZi.Year, primaZi.Month, 1).ToString("dd.MM.yyyy");
-        var dataEnd = new DateTime(primaZi.Year, primaZi.Month, DateTime.DaysInMonth(primaZi.Year, primaZi.Month)).ToString("dd.MM.yyyy");
-
-        var paragraf = new Paragraph();
-        paragraf.Add(new Chunk("Subsemnatul(a), ", fontNormal));
-        paragraf.Add(new Chunk(user.Declarant ?? "", fontBoldUnderline));
-        paragraf.Add(new Chunk(", am suplinit in intervalul ", fontNormal));
-        paragraf.Add(new Chunk($"{dataStart} - {dataEnd}", fontBoldUnderline));
-        paragraf.Add(new Chunk($" in {user.Departament ?? ""} activitati didactice dupa cum urmeaza:", fontNormal));
-        paragraf.SpacingBefore = 10f;
-        paragraf.SpacingAfter = 10f;
-        doc.Add(paragraf);
     }
 
     private void AdaugaTabelCoeficienti(Document doc)
@@ -540,5 +543,4 @@ public class DeclaratieService : IDeclaratieService
         }
         return null;
     }
-
 }

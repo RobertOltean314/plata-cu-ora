@@ -22,6 +22,16 @@ namespace PlataCuOraApp.Server.Services
         {
             var workingDays = new List<WorkingDayDTO>();
 
+            // Fetch holidays for all years in the interval
+            var years = Enumerable.Range(startDate.Year, endDate.Year - startDate.Year + 1);
+            var allHolidays = new HashSet<DateTime>();
+            foreach (var year in years)
+            {
+                var holidays = await GetPublicHolidaysAsync(year);
+                foreach (var h in holidays)
+                    allHolidays.Add(h);
+            }
+
             var docRef = _db.Collection("paritateSapt").Document(userId);
             var docSnap = await docRef.GetSnapshotAsync();
 
@@ -52,7 +62,8 @@ namespace PlataCuOraApp.Server.Services
 
             for (DateTime day = startDate.Date; day <= endDate.Date; day = day.AddDays(1))
             {
-                if (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday)
+                // Mark as non-working if weekend or public holiday
+                if (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday || allHolidays.Contains(day))
                 {
                     workingDays.Add(new WorkingDayDTO
                     {
@@ -105,6 +116,42 @@ namespace PlataCuOraApp.Server.Services
             }
 
             return workingDays;
+        }
+
+        // Fetches public holidays from zilelibere.webventure.ro and handles errors gracefully
+        private async Task<HashSet<DateTime>> GetPublicHolidaysAsync(int year)
+        {
+            var holidays = new HashSet<DateTime>();
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var url = $"https://zilelibere.webventure.ro/api/{year}";
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("legal", out var legalArray))
+                {
+                    foreach (var holiday in legalArray.EnumerateArray())
+                    {
+                        if (holiday.TryGetProperty("date", out var dateProp))
+                        {
+                            if (DateTime.TryParse(dateProp.GetString(), out var date))
+                            {
+                                holidays.Add(date.Date);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching holidays for {year}: {ex.Message}");
+            }
+            return holidays;
         }
     }
 }

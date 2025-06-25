@@ -38,18 +38,15 @@ export class HolidayService {
     );
   }
 
-  // NEW: Get working days for a user and interval
   getWorkingDays(userId: string, start: string, end: string): Observable<CalendarDay[]> {
     return this.http.get<CalendarDay[]>(`/api/WorkingDays/${userId}/${start}/${end}`);
   }
 
-  genereazaDeclaratie(userId: string, zileLucrate: Date[]): Observable<Blob> {
+  genereazaDeclaratie(userId: string, zileLucrate: string[], startDate: string, endDate: string): Observable<Blob> {
     return this.http.post(
-      `/api/declaratie/genereaza?userId=${encodeURIComponent(userId)}`, 
+      `/api/declaratie/genereaza?userId=${encodeURIComponent(userId)}&startDate=${startDate}&endDate=${endDate}`,
       zileLucrate,
       { responseType: 'blob' }
     );
   }
-
-
 }

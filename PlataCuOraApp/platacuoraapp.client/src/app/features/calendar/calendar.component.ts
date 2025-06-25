@@ -63,7 +63,6 @@ export class CalendarComponent implements OnInit {
       this.endDateControl.value
     ).subscribe({
       next: (days) => {
-        console.log('Zile primite:', days);
         this.calendarData = days.map(d => ({
           ...d,
           date: new Date(d.date),
@@ -85,7 +84,6 @@ export class CalendarComponent implements OnInit {
     this.status = 'Editare';
   }
 
-
   getParityDisplay(parity: string): string {
     if (parity === 'par') return 'Pară';
     if (parity === 'impar') return 'Impară';
@@ -106,39 +104,40 @@ export class CalendarComponent implements OnInit {
     return date.toISOString().substring(0, 10);
   }
 
-
   generatePdf() {
-  if (!this.userId) {
-    alert('User ID not found!');
-    return;
-  }
-
-  // Extrage doar zilele lucrătoare (workDayStatus === 'Zi lucratoare')
-  const zileLucrate: Date[] = this.calendarData
-    .filter(day => day.workDayStatus === 'Zi lucratoare')
-    .map(day => day.date);
-
-  if (zileLucrate.length === 0) {
-    alert('Nu există zile lucrate selectate.');
-    return;
-  }
-
-  // Trimite cererea POST către backend
-  this.holidayService.genereazaDeclaratie(this.userId, zileLucrate).subscribe({
-    next: (response) => {
-      // Response este un blob PDF => îl descărcăm
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'declaratie.pdf';
-      a.click();
-      window.URL.revokeObjectURL(url);
-    },
-    error: (err) => {
-      alert('Eroare la generarea PDF: ' + err.message);
+    if (!this.userId) {
+      alert('User ID not found!');
+      return;
     }
-  });
-}
 
+    const zileLucrate: string[] = this.calendarData
+      .filter(day => day.workDayStatus === 'Zi lucratoare')
+      .map(day => {
+        const d = new Date(day.date);
+        return d.toISOString().substring(0, 10);
+      });
+
+    if (zileLucrate.length === 0) {
+      alert('Nu există zile lucrate selectate.');
+      return;
+    }
+
+    const startDate = this.startDateControl.value;
+    const endDate = this.endDateControl.value;
+
+    this.holidayService.genereazaDeclaratie(this.userId, zileLucrate, startDate, endDate).subscribe({
+      next: (response) => {
+        const blob = new Blob([response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'declaratie.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        alert('Eroare la generarea PDF: ' + err.message);
+      }
+    });
+  }
 }

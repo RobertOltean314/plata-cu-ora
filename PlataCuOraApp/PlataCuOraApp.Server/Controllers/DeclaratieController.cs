@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlataCuOraApp.Server.Services;
+using System.Globalization;
 
 namespace PlataCuOraApp.Server.Controllers
 {
@@ -15,16 +16,26 @@ namespace PlataCuOraApp.Server.Controllers
         }
 
         [HttpPost("genereaza")]
-        public async Task<IActionResult> GenereazaDeclaratie([FromQuery] string userId, [FromBody] List<DateTime> zileLucrate)
+        public async Task<IActionResult> GenereazaDeclaratie(
+            [FromQuery] string userId,
+            [FromQuery] string startDate,
+            [FromQuery] string endDate,
+            [FromBody] List<string> zileLucrate)
         {
             try
             {
-                var pdfBytes = await _declaratieService.GenereazaDeclaratieAsync(userId, zileLucrate);
+                var intervalStart = DateTime.ParseExact(startDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var intervalEnd = DateTime.ParseExact(endDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var dateList = zileLucrate
+                    .Select(z => DateTime.ParseExact(z, "yyyy-MM-dd", CultureInfo.InvariantCulture))
+                    .ToList();
+
+                var pdfBytes = await _declaratieService.GenereazaDeclaratieAsync(userId, dateList, intervalStart, intervalEnd);
                 return File(pdfBytes, "application/pdf", "declaratie.pdf");
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message); 
+                return BadRequest(ex.Message);
             }
         }
     }
