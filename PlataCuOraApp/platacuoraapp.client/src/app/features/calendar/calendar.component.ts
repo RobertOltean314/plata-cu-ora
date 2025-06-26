@@ -106,41 +106,76 @@ export class CalendarComponent implements OnInit {
     return date.toISOString().substring(0, 10);
   }
 
-generatePdf() {
-  if (!this.userId) {
-    alert('User ID not found!');
-    return;
-  }
-
-  const zileLucrate: Date[] = this.calendarData
-    .filter(day => day.workDayStatus === 'Zi lucratoare')
-    .map(day => day.date);
-
-  if (zileLucrate.length === 0) {
-    alert('Nu există zile lucrate selectate.');
-    return;
-  }
-
-  const firstDay = this.formatToMMDDYYYY(new Date(this.startDateControl.value));
-  const lastDay = this.formatToMMDDYYYY(new Date(this.endDateControl.value));
-
-  this.holidayService.genereazaDeclaratie(this.userId, zileLucrate, firstDay, lastDay).subscribe({
-    next: (response) => {
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      window.open(url);  //  browserul face preview PDF
-      // pt download
-      // const a = document.createElement('a');
-      // a.href = url;
-      // a.download = 'declaratie.pdf';
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-    },
-    error: (err) => {
-      alert('Eroare la generarea PDF: ' + err.message);
+  generatePdf() {
+    if (!this.userId) {
+      alert('User ID not found!');
+      return;
     }
-  });
-}
+
+    const zileLucrate: Date[] = this.calendarData
+      .filter(day => day.workDayStatus === 'Zi lucratoare')
+      .map(day => day.date);
+
+    if (zileLucrate.length === 0) {
+      alert('Nu există zile lucrate selectate.');
+      return;
+    }
+
+    const firstDay = this.formatToMMDDYYYY(new Date(this.startDateControl.value));
+    const lastDay = this.formatToMMDDYYYY(new Date(this.endDateControl.value));
+
+    this.holidayService.genereazaDeclaratie(this.userId, zileLucrate, firstDay, lastDay).subscribe({
+      next: (response) => {
+        const blob = new Blob([response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url);  //  browserul face preview PDF
+        // pt download
+        // const a = document.createElement('a');
+        // a.href = url;
+        // a.download = 'declaratie.pdf';
+        // a.click();
+        // window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        alert('Eroare la generarea PDF: ' + err.message);
+      }
+    });
+  }
+
+  generateExcel() {
+    if (!this.userId) {
+      alert('User ID not found!');
+      return;
+    }
+
+    const zileLucrate: Date[] = this.calendarData
+      .filter(day => day.workDayStatus === 'Zi lucratoare')
+      .map(day => day.date);
+
+    if (zileLucrate.length === 0) {
+      alert('Nu există zile lucrate selectate.');
+      return;
+    }
+
+    const firstDay = this.formatToMMDDYYYY(new Date(this.startDateControl.value));
+    const lastDay = this.formatToMMDDYYYY(new Date(this.endDateControl.value));
+
+    this.holidayService.genereazaDeclaratieExcel(this.userId, zileLucrate, firstDay, lastDay).subscribe({
+      next: (response) => {
+        const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'declaratie.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        alert('Eroare la generarea Excel: ' + err.message);
+      }
+    });
+  }
 
   formatToMMDDYYYY(date: Date): string {
     const mm = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -151,10 +186,10 @@ generatePdf() {
 
 
 
-formatDateForBackend(dateStr: string): string {
-  const [year, month, day] = dateStr.split('-'); // from yyyy-MM-dd
-  return `${day}.${month}.${year}`;              // to dd.MM.yyyy
-}
+  formatDateForBackend(dateStr: string): string {
+    const [year, month, day] = dateStr.split('-'); // from yyyy-MM-dd
+    return `${day}.${month}.${year}`;              // to dd.MM.yyyy
+  }
 
 
 }

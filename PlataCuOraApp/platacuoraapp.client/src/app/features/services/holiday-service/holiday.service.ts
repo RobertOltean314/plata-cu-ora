@@ -49,4 +49,9 @@ export class HolidayService {
     return this.http.post(url, zileLucrate, { responseType: 'blob' });
   }
 
+  genereazaDeclaratieExcel(userId: string, zileLucrate: Date[], startDate: string, endDate: string): Observable<Blob> {
+    const url = `/api/declaratie/genereaza-excel?userId=${userId}&firstDay=${startDate}&lastDay=${endDate}`;
+    return this.http.post(url, zileLucrate, { responseType: 'blob' });
+  }
+
 }

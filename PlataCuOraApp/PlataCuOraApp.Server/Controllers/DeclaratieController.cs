@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PlataCuOraApp.Server.Domain.DTO;
+using PlataCuOraApp.Server.Domain.DTOs;
 using PlataCuOraApp.Server.Services;
 using System.Collections.Concurrent;
 
@@ -35,6 +37,26 @@ namespace PlataCuOraApp.Server.Controllers
             }
         }
 
+        [HttpPost("genereaza-excel")]
+        public async Task<IActionResult> GenereazaDeclaratieExcel(
+            [FromQuery] string userId,
+            [FromQuery] DateTime firstDay,
+            [FromQuery] DateTime lastDay,
+            [FromBody] List<DateTime> zileLucrate)
+        {
+            try
+            {
+                var excelBytes = await _declaratieService.GenereazaDeclaratieEXCELAsync(userId, zileLucrate, firstDay, lastDay);
 
+                return File(
+                    excelBytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "declaratie.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Eroare la generarea Excel: {ex.Message}");
+            }
+        }
     }
 }
