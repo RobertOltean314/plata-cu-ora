@@ -11,6 +11,7 @@ using ClosedXML.Excel;
 using ClosedXML.Excel.Drawings;
 using static Google.Cloud.Firestore.V1.StructuredAggregationQuery.Types.Aggregation.Types;
 using static QuestPDF.Helpers.Colors;
+using System.Text;
 
 
 public class DeclaratieService : IDeclaratieService
@@ -555,7 +556,6 @@ public class DeclaratieService : IDeclaratieService
         return null;
     }
 
-
     //EXCEL
 
     public async Task<byte[]> GenereazaDeclaratieEXCELAsync(string userId, List<DateTime> zileLucrate, DateTime firstDay, DateTime lastDay)
@@ -586,10 +586,10 @@ public class DeclaratieService : IDeclaratieService
             Departament = user.Departament
         };
 
-        var pdf = GenereazaDeclaratieExcel(userDto, orar, zileLucrate, paritati, firstDay, lastDay);
+        var excel = GenereazaDeclaratieExcel(userDto, orar, zileLucrate, paritati, firstDay, lastDay);
 
-        _logger.LogInformation("Declaration PDF generated successfully for userId={UserId}", userId);
-        return pdf;
+        _logger.LogInformation("Declaration EXCEL generated successfully for userId={UserId}", userId);
+        return excel;
     }
 
     public byte[] GenereazaDeclaratieExcel(
@@ -685,21 +685,22 @@ public class DeclaratieService : IDeclaratieService
         row++;
 
         string interval = $"{firstDay:dd.MM.yyyy} - {lastDay:dd.MM.yyyy}";
-        string text = $"\t\tSubsemnatul(a), {user.Declarant}, am suplinit in intervalul {interval} in {user.Departament} activitati didactice dupa cum urmeaza:";
 
+        string text = $"\tSubsemnatul(a),{user.Declarant}, am suplinit în intervalul {interval} în {user.Departament} activități didactice după cum urmează:";
 
         var range = ws.Range(row, 1, row, 10).Merge();
         var cell = ws.Cell(row, 1);
         cell.Value = text;
 
         range.Style.Alignment.WrapText = true;
-        range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Justify;
-
+        range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Bottom;
         ws.Row(row).Height = 30;
 
         var richText = cell.GetRichText();
 
-        int indexNume = text.IndexOf(user.Declarant);
+
+        int indexNume = text.IndexOf(user.Declarant, StringComparison.Ordinal);
         if (indexNume >= 0)
             richText.Substring(indexNume, user.Declarant.Length).SetBold().SetUnderline();
 
@@ -840,6 +841,7 @@ public class DeclaratieService : IDeclaratieService
         var subtotalCell = ws.Range(row, 3, row, 6).Merge();
         subtotalCell.Value = totalFizice;
         subtotalCell.Style.Font.Bold = true;
+        subtotalCell.Style.Font.FontSize = 12;
         subtotalCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         subtotalCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         subtotalCell.Style.Border.TopBorder = XLBorderStyleValues.Thick;
