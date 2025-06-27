@@ -9,16 +9,16 @@ namespace PlataCuOra.Server.Domain.Entities
         [FirestoreProperty]
         public string Id { get; set; } = string.Empty;
 
-        [FirestoreProperty]
+        [FirestoreProperty("email")]
         public string Email { get; set; } = string.Empty;
 
-        [FirestoreProperty]
+        [FirestoreProperty("displayName")]
         public string DisplayName { get; set; } = string.Empty;
 
-        [FirestoreProperty]
+        [FirestoreProperty("createdAt")]
         public DateTime CreatedAt { get; set; }
 
-        [FirestoreProperty]
+        [FirestoreProperty("role")]
         public string Role { get; set; } = string.Empty;
 
         public User() { }

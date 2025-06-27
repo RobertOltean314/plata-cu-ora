@@ -17,7 +17,8 @@
           <div class="card-body p-4 text-center">
             <div class="mb-3">
               <h3 class="fw-bold">
-                 {{ (selectedProfile?.isActive && selectedProfile?.declarant) || user.name || 'User' }}
+                 <!-- {{ (selectedProfile?.isActive && selectedProfile?.declarant) || userDis.displayName || 'User' }} -->
+                   {{userDis.displayName || 'User'}}
               </h3>
               <p class="text-muted mb-0">{{user.email}}</p>
             </div>
@@ -42,7 +43,8 @@
               {{ errorMessage }}
             </div>
 
-            <div *ngIf="profiles.length > 0">
+            <div>
+            <!-- *ngIf="profiles.length > 0"> -->
               <label for="profileSelect">Select Profile:</label>
               <select id="profileSelect" class="form-select mb-3"
                       [(ngModel)]="selectedProfile"
