@@ -17,8 +17,7 @@
           <div class="card-body p-4 text-center">
             <div class="mb-3">
               <h3 class="fw-bold">
-                 <!-- {{ (selectedProfile?.isActive && selectedProfile?.declarant) || userDis.displayName || 'User' }} -->
-                   {{userDis.displayName || 'User'}}
+                {{userDis.displayName || 'User'}}
               </h3>
               <p class="text-muted mb-0">{{user.email}}</p>
             </div>
@@ -44,30 +43,24 @@
             </div>
 
             <div>
-            <!-- *ngIf="profiles.length > 0"> -->
               <label for="profileSelect">Select Profile:</label>
-              <select id="profileSelect" class="form-select mb-3"
-                      [(ngModel)]="selectedProfile"
-                      (change)="selectedProfile && onProfileSelect(selectedProfile)">
+              <select id="profileSelect" class="form-select mb-3" [(ngModel)]="selectedProfile"
+                (change)="selectedProfile && onProfileSelect(selectedProfile)">
                 <option *ngFor="let profile of profiles" [ngValue]="profile">
                   {{ profile.declarant }} - {{ profile.universitate }} {{ profile.isActive ? '(Active)' : '' }}
                 </option>
               </select>
 
-              <!-- Aligned buttons in one row, all blue -->
               <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-primary"
-                        (click)="selectedProfile && setActiveProfile()"
-                        [disabled]="!selectedProfile || selectedProfile.isActive">
+                <button class="btn btn-primary" (click)="selectedProfile && setActiveProfile()"
+                  [disabled]="!selectedProfile || selectedProfile.isActive">
                   Set Active
                 </button>
-                <button class="btn btn-primary"
-                        (click)="selectedProfile && editProfile(selectedProfile)"
-                        [disabled]="!selectedProfile">
+                <button class="btn btn-primary" (click)="selectedProfile && editProfile(selectedProfile)"
+                  [disabled]="!selectedProfile">
                   Edit Profile
                 </button>
-                <button class="btn btn-primary"
-                        (click)="addNewProfile()">
+                <button class="btn btn-primary" (click)="addNewProfile()">
                   Add New Profile
                 </button>
               </div>
@@ -76,15 +69,25 @@
             <!-- Highlighted form block -->
             <div *ngIf="editingProfile" class="border border-primary rounded p-3 mb-3">
               <form (ngSubmit)="saveProfile()">
-                <input [(ngModel)]="editingProfile.declarant" name="declarant" placeholder="Declarant" class="form-control mb-2" required>
-                <input [(ngModel)]="editingProfile.tip" name="tip" placeholder="Tip" class="form-control mb-2" required>
-                <input [(ngModel)]="editingProfile.directorDepartament" name="directorDepartament" placeholder="Director Departament" class="form-control mb-2">
+                <input [(ngModel)]="editingProfile.declarant" name="declarant" placeholder="Declarant"
+                  class="form-control mb-2" required>
+                <select [(ngModel)]="editingProfile.tip" name="tip" class="form-select mb-2" required>
+                  <option value="" disabled selected hidden>Tip (selectează)</option>
+                  <option value="Titular">Titular</option>
+                  <option value="Asociat">Asociat</option>
+                </select>
+                <input [(ngModel)]="editingProfile.directorDepartament" name="directorDepartament"
+                  placeholder="Director Departament" class="form-control mb-2">
                 <input [(ngModel)]="editingProfile.decan" name="decan" placeholder="Decan" class="form-control mb-2">
-                <input [(ngModel)]="editingProfile.universitate" name="universitate" placeholder="Universitate" class="form-control mb-2">
-                <input [(ngModel)]="editingProfile.facultate" name="facultate" placeholder="Facultate" class="form-control mb-2">
-                <input [(ngModel)]="editingProfile.departament" name="departament" placeholder="Departament" class="form-control mb-2">
+                <input [(ngModel)]="editingProfile.universitate" name="universitate" placeholder="Universitate"
+                  class="form-control mb-2">
+                <input [(ngModel)]="editingProfile.facultate" name="facultate" placeholder="Facultate"
+                  class="form-control mb-2">
+                <input [(ngModel)]="editingProfile.departament" name="departament" placeholder="Departament"
+                  class="form-control mb-2">
                 <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" [(ngModel)]="editingProfile.isActive" name="isActive" id="isActiveCheck">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="editingProfile.isActive" name="isActive"
+                    id="isActiveCheck">
                   <label class="form-check-label" for="isActiveCheck">Set Active</label>
                 </div>
                 <button type="submit" class="btn btn-primary me-2">Save</button>
