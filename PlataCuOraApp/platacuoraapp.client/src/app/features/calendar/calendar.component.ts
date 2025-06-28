@@ -26,6 +26,9 @@ export class CalendarComponent implements OnInit {
   loading = false;
   status: 'Editare' | 'Validat' = 'Editare';
   userId: string | null = null;
+  calendarGenerated = false;
+  calendarValidated = false;
+
 
   constructor(
     private fb: FormBuilder,
@@ -33,12 +36,12 @@ export class CalendarComponent implements OnInit {
     private userService: UserService
   ) {
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const firstDay = new Date();
+    const lastDay = new Date();
 
     this.filterForm = this.fb.group({
-      startDate: [this.toISODateString(firstDay)],  // "yyyy-MM-dd"
-      endDate: [this.toISODateString(lastDay)]      // "yyyy-MM-dd"
+      startDate: [],  // "yyyy-MM-dd"
+      endDate: []      // "yyyy-MM-dd"
     });
   }
 
@@ -72,6 +75,8 @@ export class CalendarComponent implements OnInit {
         }));
         this.loading = false;
         this.status = 'Editare';
+        this.calendarGenerated = true;
+        this.calendarValidated = false;
       },
       error: () => {
         this.loading = false;
@@ -99,7 +104,17 @@ export class CalendarComponent implements OnInit {
   validateCalendar() {
     if (this.calendarData.length > 0) {
       this.status = 'Validat';
+      this.calendarValidated = true;
     }
+  }
+
+  resetCalendar(): void {
+    this.calendarData = [];
+    this.startDateControl.setValue(null);
+    this.endDateControl.setValue(null);
+    this.status = 'Editare';
+    this.calendarGenerated = false;
+    this.calendarValidated = false;
   }
 
   toISODateString(date: Date): string {
