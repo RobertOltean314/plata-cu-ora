@@ -104,7 +104,6 @@ builder.Services.AddScoped<IWorkingDaysService, WorkingDaysService>();
 
 builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
 
-
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -129,11 +128,13 @@ builder.Services.AddCors(options =>
             "https://127.0.0.1:4200",
             "http://localhost:4200",
             "https://localhost:4200",
-            "http://127.0.0.1:4200"
+            "http://127.0.0.1:4200",
+            "https://platacuora.web.app",
+            "https://platacuora.firebaseapp.com"
         )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 
