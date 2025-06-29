@@ -171,10 +171,30 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(Int32.Parse(port));
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 app.UseCors("AllowAngularClient");
+
+//// OPTIONS middleware (bypass authentication for preflight requests)
+//app.Use(async (context, next) =>
+//{
+//    if (context.Request.Method == HttpMethods.Options)
+//    {
+//        context.Response.StatusCode = StatusCodes.Status200OK;
+//        await context.Response.CompleteAsync();
+//    }
+//    else
+//    {
+//        await next();
+//    }
+//});
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
