@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+//import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, of, throwError, timer } from 'rxjs';
 import { User } from '../../../models/user.model';
 import { LoginRequest } from '../../../models/login-request.model';
 import { environment } from '../../../environment/environment';
 import { RegisterRequest } from '../../../models/register-request.model';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -40,14 +41,22 @@ export class UserService {
 
   // Add Google login method
   googleLogin(idToken: string): Observable<any> {
-    return this.http.post<any>(`${environment.apiBaseUrl}/api/user/google-login`, JSON.stringify(idToken), {
-      headers: { 'Content-Type': 'application/json' }
-    })
+    const url = `${environment.apiBaseUrl}/api/user/google-login`;
+
+    // 1. Creează headerele, inclusiv cel de Authorization
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}` // AICI ESTE CHEIA!
+    });
+
+    // 2. Fă request-ul POST cu headerele setate și un BODY GOL `{}`
+    return this.http.post<any>(url, {}, { headers: headers })
       .pipe(
         map((response: any) => {
-          // If successful, update the user state immediately
-          if (response.user && response.token) {
-            sessionStorage.setItem('token', response.token);
+          // Logica ta de după succes este deja bună, o păstrăm
+          if (response && response.user && response.token) {
+            console.log('Backend login successful, received new app token:', response.token);
+            sessionStorage.setItem('token', response.token); // Salvezi token-ul NOU de la backend
             this.setLoggedInUser(response.user);
           }
           return response;

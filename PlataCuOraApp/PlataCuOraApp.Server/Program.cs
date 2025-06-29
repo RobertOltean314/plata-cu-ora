@@ -1,4 +1,4 @@
-using FirebaseAdmin;
+﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,62 +23,32 @@ var builder = WebApplication.CreateBuilder(args);
 // Set up logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
-// Load Firebase configuration
-var firebaseProjectId = builder.Configuration["Firebase:ProjectId"] ?? "platacuora";
-
-// Method 1: Try to load API key from appsettings.json
+// --- START CONFIGURATION LOADING ---
+// Încarcă configurația STRICT din variabilele de mediu setate în Cloud Run.
+var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 var firebaseApiKey = builder.Configuration["Firebase:ApiKey"];
 
-// Method 2: If not found in appsettings.json, try to load from file
-if (string.IsNullOrEmpty(firebaseApiKey))
+// Verificare strictă. Aplicația va crăpa la pornire dacă variabilele nu sunt setate.
+// Acest lucru te ajută să depanezi rapid, arătând eroarea în log-urile Cloud Run.
+if (string.IsNullOrEmpty(firebaseProjectId) || string.IsNullOrEmpty(firebaseApiKey))
 {
-    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
-    logger.LogWarning("API Key not found in configuration, trying to load from file");
-
-    string firebaseApiKeyFile = Path.Combine(Directory.GetCurrentDirectory(), "Keys", "firebaseApiKey.json");
-
-    if (File.Exists(firebaseApiKeyFile))
-    {
-        try
-        {
-            string apiKeyJson = File.ReadAllText(firebaseApiKeyFile);
-            using (JsonDocument doc = JsonDocument.Parse(apiKeyJson))
-            {
-                JsonElement root = doc.RootElement;
-                firebaseApiKey = root.GetProperty("apiKey").GetString();
-                logger.LogInformation("API Key loaded from file successfully");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to load API key from file");
-        }
-    }
-    else
-    {
-        logger.LogError("API key file not found at: {FilePath}", firebaseApiKeyFile);
-    }
+    throw new InvalidOperationException("EROARE CRITICĂ: Variabilele de mediu 'Firebase:ProjectId' sau 'Firebase:ApiKey' nu sunt configurate. Te rog, setează-le în setările serviciului Cloud Run.");
 }
 
-// Verify the API key is not empty
-if (string.IsNullOrEmpty(firebaseApiKey))
-{
-    throw new InvalidOperationException("Firebase API Key is missing. Please check your configuration or key files.");
-}
-
-// Initialize Firebase Admin
+// --- START FIREBASE INITIALIZATION ---
+// Inițializează Firebase Admin folosind contul de serviciu asociat cu instanța Cloud Run.
+// NU mai citește din fișiere locale.
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.FromFile("Keys/firebaseKey.json")
+    Credential = GoogleCredential.GetApplicationDefault()
 });
 
-// Set Environment variable for Firestore
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Keys/firebaseKey.json");
-
-// Configure services
+// --- START SERVICE REGISTRATION ---
+// Înregistrează serviciile Firebase folosind configurația încărcată.
 builder.Services.AddSingleton<FirestoreDb>(provider => FirestoreDb.Create(firebaseProjectId));
-builder.Services.AddSingleton(FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance);
+builder.Services.AddSingleton(FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance); // Această linie este corectă.
 builder.Services.AddSingleton<IFirebaseConfig>(new FirebaseConfig
 {
     ApiKey = firebaseApiKey,
@@ -181,19 +151,19 @@ var app = builder.Build();
 
 app.UseCors("AllowAngularClient");
 
-//// OPTIONS middleware (bypass authentication for preflight requests)
-//app.Use(async (context, next) =>
-//{
-//    if (context.Request.Method == HttpMethods.Options)
-//    {
-//        context.Response.StatusCode = StatusCodes.Status200OK;
-//        await context.Response.CompleteAsync();
-//    }
-//    else
-//    {
-//        await next();
-//    }
-//});
+// OPTIONS middleware (bypass authentication for preflight requests)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        await context.Response.CompleteAsync();
+    }
+    else
+    {
+        await next();
+    }
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -161,30 +161,33 @@ namespace PlataCuOra.Server.Services.Implementation
         {
             try
             {
-                // Verify the ID token sent from frontend
-                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+                // FOLOSEȘTE _firebaseAuth, instanța injectată!
+                _logger.LogInformation("Attempting to verify Google ID token using the injected FirebaseAuth instance...");
+                FirebaseToken decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken);
+                _logger.LogInformation("Token verified successfully for UID: {uid}", decodedToken.Uid);
 
                 string uid = decodedToken.Uid;
-
-                // Get user details from Firebase Authentication
-                var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserAsync(uid);
-
                 var user = await _userRepository.GetUserByIdAsync(uid);
 
                 if (user == null)
                 {
-                    // Create user in Firestore if not exists
+                    string email = decodedToken.Claims.GetValueOrDefault("email")?.ToString();
+                    string displayName = decodedToken.Claims.GetValueOrDefault("name")?.ToString() ?? "NoName";
+
+                    _logger.LogInformation("User with UID {uid} not found in DB. Creating new user.", uid);
                     user = new User
                     {
                         Id = uid,
-                        Email = firebaseUser.Email,
-                        DisplayName = firebaseUser.DisplayName ?? "NoName"
+                        Email = email,
+                        DisplayName = displayName
                     };
-
                     await _userRepository.CreateUserAsync(user);
                 }
 
-                // Map to DTO
+                // FOLOSEȘTE _firebaseAuth ȘI AICI!
+                string customToken = await _firebaseAuth.CreateCustomTokenAsync(uid);
+                _logger.LogInformation("Successfully created custom token for UID {uid}.", uid);
+
                 var userDto = new UserDTO
                 {
                     Id = user.Id,
@@ -192,14 +195,18 @@ namespace PlataCuOra.Server.Services.Implementation
                     DisplayName = user.DisplayName
                 };
 
-                return (true, idToken, userDto, null);
+                return (true, customToken, userDto, null);
+            }
+            catch (FirebaseAuthException authEx)
+            {
+                _logger.LogError(authEx, "FirebaseAuthException occurred. ErrorCode: {errorCode}. Message: {message}", authEx.AuthErrorCode, authEx.Message);
+                return (false, null, null, $"Firebase authentication failed: {authEx.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Google Login failed: {Message}", ex.Message);
-                return (false, null, null, $"Invalid token or error during Google login: {ex.Message}");
+                _logger.LogError(ex, "An unexpected generic exception occurred in LoginWithGoogleAsync.");
+                return (false, null, null, "An internal server error occurred.");
             }
         }
-
     }
 }
