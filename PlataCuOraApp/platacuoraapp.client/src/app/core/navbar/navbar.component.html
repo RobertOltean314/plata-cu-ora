@@ -18,7 +18,7 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <!-- Seen only when loggedin -->
                 <ng-container *ngIf="user">
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" routerLink="/" routerLinkActive="active"
                             [routerLinkActiveOptions]="{exact: true}">
                             <i class="bi bi-house-door"></i>
@@ -30,7 +30,7 @@
                             <i class="bi bi-file-earmark-text"></i>
                             Documents
                         </a>
-                    </li>
+                    </li> -->
 
                     <!-- User Profile Dropdown -->
                     <li class="nav-item dropdown">
@@ -66,7 +66,7 @@
                 </ng-container>
 
                 <!-- See this if not loggin -->
-                <ng-container *ngIf="!user">
+                <!-- <ng-container *ngIf="!user">
                     <li class="nav-item">
                         <a class="nav-link" routerLink="/login">
                             <i class="bi bi-box-arrow-in-right"></i>
@@ -79,7 +79,7 @@
                             Register
                         </a>
                     </li>
-                </ng-container>
+                </ng-container> -->
             </ul>
         </div>
     </div>

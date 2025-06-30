@@ -13,3 +13,4 @@ export interface OrarEntry {
   saptamanaInceput: string;
   totalOre: number;
 }
+

@@ -6,6 +6,22 @@ import { OrarService } from '../services/orar-services/orar-service.service';
 import { OrarEntry } from '../../models/orar-entry.model';
 import { UserService } from '../services/user-services/user.service';
 
+export interface Orar {
+  nrPost: number;
+  denPost: string;
+  oreCurs: number;
+  oreSem: number;
+  oreLab: number;
+  oreProi: number;
+  tip: 'LR' | 'MR' | 'LE' | 'ME';
+  formatia: string;
+  ziua: 'Luni' | 'Marti' | 'Miercuri' | 'Joi' | 'Vineri';
+  imparPar: 'Par' | 'Impar';
+  materia: string;
+  saptamanaInceput: string; 
+  totalOre?: number; 
+}
+
 @Component({
   selector: 'app-orar',
   templateUrl: './orar.component.html',
@@ -15,32 +31,26 @@ import { UserService } from '../services/user-services/user.service';
 })
 export class OrarComponent implements OnInit {
   orar: OrarEntry[] = [];
-  newEntry: OrarEntry = this.getEmptyEntry();
   isEditable = false;
-  selectedRow: number | null = null;
+  addingNew = false;
+  newEntry: OrarEntry = this.initNewEntry();
+  userId: string | null = null;
 
-  orarUserList: OrarEntry[] = []; 
-  editIndex: number | null = null;
 
-  userId: string | null = null; // ID-ul utilizatorului, dacă este necesar
+  constructor(
+    private orarService: OrarService,
+    private userService: UserService
+  ) {}
 
-  // Array pentru dropdown-uri
-  zileSaptamana = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-  tipuriSaptamana = ['Pară', 'Impară'];
-
-  constructor(private orarService: OrarService, private userService: UserService) {
+  ngOnInit(): void {
     this.userId = this.userService.getUserId();
-  }
+    if (this.userId) {
+      this.loadOrar();
+    }
+}
 
-  ngOnInit() {
-    this.getOrar();
-  }
 
-  getOrar() {
-    this.orarService.getAll(this.userId!!).subscribe((data: OrarEntry[]) => this.orar = data ?? []);
-  }
-
-  getEmptyEntry(): OrarEntry {
+  initNewEntry(): OrarEntry {
     return {
       nrPost: 0,
       denPost: '',
@@ -48,71 +58,134 @@ export class OrarComponent implements OnInit {
       oreSem: 0,
       oreLab: 0,
       oreProi: 0,
-      tip: '',
+      tip: 'LR',
       formatia: '',
-      ziua: '',
-      imparPar: '',
+      ziua: 'Luni',
+      imparPar: 'Par',
       materia: '',
       saptamanaInceput: '',
       totalOre: 0
     };
   }
 
-  startAddNew() {
-    const newEntry: OrarEntry = {
-      nrPost: 0,
-      denPost: '',
-      oreCurs: 0,
-      oreSem: 0,
-      oreLab: 0,
-      oreProi: 0,
-      tip: '',
-      formatia: '',
-      ziua: '',
-      imparPar: '',
-      materia: '',
-      saptamanaInceput: '',
-      totalOre: 0
-    };
-
-    this.orarUserList = [newEntry];
-    this.editIndex = 0;
+  cancelAdd() {
+    this.addingNew = false;
   }
 
-  addRow() {
-    this.orarService.add(this.userId!!, this.newEntry).subscribe({
-      next: (): void => {
-        this.getOrar();
-        this.newEntry = this.getEmptyEntry();
+  loadOrar() {
+    if (!this.userId) return;
+    this.orarService.getAll(this.userId).subscribe({
+      next: (data) => {
+        this.orar = data;
+      },
+      error: (err) => {
+        console.error('Eroare la încărcare orar:', err);
       }
     });
   }
 
-  deleteRow(index: number) {
-    const entry = this.orar[index];
-    this.orarService.delete(this.userId!!, entry).subscribe({
-      next: (): void => this.getOrar(),
-      error: (err: any): void => alert('Eroare la ștergere!')
-    });
-  }
-
-  startEdit(index: number) {
-    this.selectedRow = index;
-  }
-
-  saveEdit(index: number) {
-    const oldEntry = { ...this.orar[index] };
-    const newEntry = this.orar[index];
-    this.orarService.update(this.userId!!, oldEntry, newEntry).subscribe({
-      next: (): void => {
-        this.selectedRow = null;
-        this.getOrar();
-      },
-      error: (err: any): void => alert('Eroare la editare!')
-    });
-  }
-
   toggleEdit() {
+    if (this.isEditable) {
+      this.saveOrar();
+    }
     this.isEditable = !this.isEditable;
+    if (!this.isEditable) {
+      this.addingNew = false;
+    }
   }
+
+  startAddNew() {
+    this.addingNew = true;
+    this.newEntry = this.initNewEntry();
+  }
+
+  addOrar() {
+    if (!this.validateEntry(this.newEntry)) {
+      alert('Te rog completează toate câmpurile obligatorii corect!');
+      return;
+    }
+    
+    this.orarService.add(this.userId!, this.newEntry).subscribe({
+      next: (res) => {
+        console.log('Intrare adăugată:', res);
+        this.orar.push({ ...this.newEntry });
+        this.addingNew = false;
+      },
+      error: (err) => {
+        console.error('Eroare la adăugare:', err);
+      }
+    });
+  }
+
+
+  updateOrar(index: number) {
+    const oldEntry = this.orar[index];
+    const newEntry = this.orar[index]; // modificată direct în UI
+
+    this.orarService.update(this.userId!, oldEntry, newEntry).subscribe({
+      next: (res) => {
+        console.log('Intrare actualizată:', res);
+      },
+      error: (err) => {
+        console.error('Eroare la actualizare:', err);
+      }
+    });
+  }
+
+  deleteOrar(index: number) {
+    if (!confirm('Sigur dorești să ștergi această intrare?')) {
+      return;
+    }
+    const entryToDelete = this.orar[index];
+    this.orarService.delete(this.userId!, entryToDelete).subscribe({
+      next: () => {
+        this.orar.splice(index, 1);
+        console.log('Intrare ștearsă cu succes');
+      },
+      error: (err) => {
+        console.error('Eroare la ștergere:', err);
+      }
+    });
+  }
+
+  validateEntry(entry: OrarEntry): boolean {
+    return (
+      entry.nrPost > 0 &&
+      entry.denPost.trim().length > 0 &&
+      entry.oreCurs >= 0 &&
+      entry.oreSem >= 0 &&
+      entry.oreLab >= 0 &&
+      entry.oreProi >= 0 &&
+      ['LR', 'MR', 'LE', 'ME'].includes(entry.tip) &&
+      entry.formatia.trim().length > 0 &&
+      ['Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri'].includes(entry.ziua) &&
+      entry.materia.trim().length > 0
+    );
+  }
+
+
+  saveOrar() {
+    // Poți itera orarul și actualiza fiecare intrare dacă vrei, sau faci update individual
+    console.log('Salvare orar apelată');
+    // Dacă vrei, poți salva fiecare intrare prin updateOrar(index)
+    this.orar.forEach((entry, index) => this.updateOrar(index));
+  }
+
+  saveAllChanges() {
+    if (this.orar.length === 0) {
+      alert('Nu există date de salvat.');
+      return;
+    }
+
+    // Pentru fiecare element din orar, apelăm updateOrar
+    this.orar.forEach((_, index) => {
+      this.updateOrar(index);
+    });
+
+    this.isEditable = false;
+    this.addingNew = false;
+
+    alert('Modificările au fost salvate cu succes!');
+  }
+
 }

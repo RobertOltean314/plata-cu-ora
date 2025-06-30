@@ -42,7 +42,18 @@ export class CalendarComponent implements OnInit {
     this.filterForm = this.fb.group({
       startDate: [],  // "yyyy-MM-dd"
       endDate: []      // "yyyy-MM-dd"
-    });
+    }, { validators: this.validateDateRange });
+  }
+
+  validateDateRange(group: FormGroup): { [key: string]: any } | null {
+    const start = group.get('startDate')?.value;
+    const end = group.get('endDate')?.value;
+
+    if (start && end && new Date(end) < new Date(start)) {
+      return { dateRangeInvalid: true };
+    }
+
+    return null;
   }
 
   get startDateControl(): FormControl {
@@ -59,7 +70,13 @@ export class CalendarComponent implements OnInit {
   }
 
   generateCalendar(): void {
+    if (this.filterForm.invalid) {
+      alert('Intervalul de date este invalid.');
+      return;
+    }
+
     this.loading = true;
+
     this.holidayService.getWorkingDays(
       this.userId!,
       this.startDateControl.value,

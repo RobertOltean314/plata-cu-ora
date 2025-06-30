@@ -1,5 +1,5 @@
 <div class="container my-4 calendar-container">
-  <h3 class="mb-4">Propune Date (început și sfârșit lună curentă)</h3>
+  <h3 class="mb-4">Generare declarație</h3>
 
   <form [formGroup]="filterForm" class="row g-3 align-items-center mb-3">
     <div class="row align-items-end">
@@ -44,6 +44,11 @@
     </div>
 
 
+    <br><div *ngIf="filterForm.errors?.['dateRangeInvalid'] && (startDateControl.value && endDateControl.value)">
+        <p style="color: red;">Data de sfârșit nu poate fi anterioară datei de început.</p>
+    </div><br>
+
+
     <div class="col-auto d-flex align-items-end">
       <button
         type="button"
@@ -80,15 +85,9 @@
 
     </div>
 
-    <div class="col-auto ms-auto">
-      <span class="fw-semibold">Stare: </span>
-      <span
-        [ngClass]="{
-          'badge bg-success': status === 'Validat',
-          'badge bg-warning text-dark': status === 'Editare'
-        }"
-      >
-        {{ status === 'Validat' ? 'Validat' : 'În editare' }}
+    <div class="w-100 d-flex justify-content-end mt-2">
+      <span>
+        {{ status === 'Validat' ? '✅ Validat' : '🔧 În editare' }}
       </span>
     </div>
   </form>

@@ -10,12 +10,12 @@
             <div class="text-center mb-4">
               <h1 class="h3 fw-bold">Sign In</h1>
               <p class="text-muted">Welcome back</p>
-            </div>
+            </div><br><br>
 
-            <div *ngIf="loginError" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <!-- <div *ngIf="loginError" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
               {{ loginError }}
               <button type="button" class="btn-close" (click)="loginError = ''"></button>
-            </div>
+            </div> -->
 
             <!-- Google Sign In Button -->
             <div class="d-grid gap-2 mb-3">
@@ -35,16 +35,16 @@
                 <span *ngIf="!isGoogleLoading">Continue with Google</span>
                 <span *ngIf="isGoogleLoading">Signing in...</span>
               </button>
-            </div>
+            </div><br><br>
 
             <!-- Divider -->
-            <div class="divider-container mb-4">
+            <!-- <div class="divider-container mb-4">
               <hr class="divider-line">
               <span class="divider-text">or</span>
               <hr class="divider-line">
-            </div>
+            </div> -->
 
-            <form #form="ngForm" (ngSubmit)="onFormSubmit()" novalidate>
+            <!-- <form #form="ngForm" (ngSubmit)="onFormSubmit()" novalidate>
               <div class="mb-3">
                 <label for="loginEmail" class="form-label visually-hidden">Email</label>
                 <div class="input-group">
@@ -99,7 +99,7 @@
                                             class="text-decoration-none fw-bold">Create Account</a>
                 </p>
               </div>
-            </form>
+            </form> -->
           </div>
         </div>
       </div>
