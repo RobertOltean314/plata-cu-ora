@@ -2,54 +2,80 @@
   <h3 class="mb-4">Propune Date (început și sfârșit lună curentă)</h3>
 
   <form [formGroup]="filterForm" class="row g-3 align-items-center mb-3">
-    <div class="col-auto">
-      <label for="startDate" class="form-label">De la:</label>
-      <input
-        id="startDate"
-        type="date"
-        class="form-control"
-        [formControl]="startDateControl"
-        [disabled]="status === 'Validat'"
-        (change)="onDateChange()"
-      />
+    <div class="row align-items-end">
+      <div class="col-auto">
+        <label for="startDate" class="form-label">De la:</label>
+        <input
+          id="startDate"
+          type="date"
+          class="form-control"
+          placeholder="dd.mm.yyyy"
+          [formControl]="startDateControl"
+          [disabled]="status === 'Validat'"
+          (change)="onDateChange()"
+        />
+      </div>
+
+      <div class="col-auto">
+        <label for="endDate" class="form-label">Până la:</label>
+        <input
+          id="endDate"
+          type="date"
+          class="form-control"
+          placeholder="dd.mm.yyyy"
+          [formControl]="endDateControl"
+          [disabled]="status === 'Validat'"
+          (change)="onDateChange()"
+        />
+      </div>
+
+      <div class="col-auto">
+        <i
+          class="bi bi-arrow-clockwise fs-4 text-dark"
+          style="cursor: pointer;"
+          title="Resetează Calendar"
+          (click)="resetCalendar()"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="resetCalendar()"
+          (keydown.space)="resetCalendar()"
+        ></i>
+      </div>
     </div>
 
-    <div class="col-auto">
-      <label for="endDate" class="form-label">Până la:</label>
-      <input
-        id="endDate"
-        type="date"
-        class="form-control"
-        [formControl]="endDateControl"
-        [disabled]="status === 'Validat'"
-        (change)="onDateChange()"
-      />
-    </div>
 
     <div class="col-auto d-flex align-items-end">
       <button
         type="button"
         class="btn btn-primary me-2"
         (click)="generateCalendar()"
-        [disabled]="status === 'Validat'"
-      >
+        [disabled]="!filterForm.valid || !startDateControl.value || !endDateControl.value">
         Generare Calendar
       </button>
+
       <button
         type="button"
         class="btn btn-success me-2"
         (click)="validateCalendar()"
         title="Generează calendarul înainte de validare"
-        [disabled]="status === 'Validat' || calendarData.length === 0"
-      >
+        [disabled]="!calendarGenerated || status === 'Validat'">
         Validează Calendar
       </button>
 
       <button 
         type="button" 
-        class="btn btn-secondary" 
-        (click)="generatePdf()" >
-        Generează PO
+        class="btn btn-secondary me-2" 
+        (click)="generatePdf()" 
+        [disabled]="!calendarValidated">
+        Generează PO - PDF
+      </button>
+
+      <button 
+        type="button" 
+        class="btn btn-secondary me-2" 
+        (click)="generateExcel()"
+        [disabled]="!calendarValidated || loading">
+        Generează PO - EXCEL
       </button>
 
     </div>
