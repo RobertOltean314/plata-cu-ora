@@ -12,6 +12,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.IdentityModel.Tokens.Jwt;
 
 
 namespace PlataCuOra.Server.Services.Implementation
@@ -143,48 +144,54 @@ namespace PlataCuOra.Server.Services.Implementation
             }
         }
 
-        public async Task<bool> VerifyTokenAsync(string token)
+        //public async Task<bool> VerifyTokenAsync(string token)
+        //{
+        //    try
+        //    {
+        //        var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
+        //        return decodedToken != null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogWarning(ex, "Token verification failed");
+        //        return false;
+        //    }
+        //}
+
+        public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(GoogleLoginRequestDTO idToken)
         {
             try
             {
-                var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
-                return decodedToken != null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Token verification failed");
-                return false;
-            }
-        }
+                // Folosește Firebase Admin SDK doar pentru a extrage UID, dacă chiar e necesar.
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadJwtToken(idToken.idToken);
+                var uid = jsonToken.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
 
-        public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(string idToken)
-        {
-            try
-            {
-                // Verify the ID token sent from frontend
-                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+                if (string.IsNullOrEmpty(uid))
+                {
+                    return (false, null, null, "Token invalid: UID nu a putut fi extras.");
+                }
 
-                string uid = decodedToken.Uid;
+                // Dacă ai nevoie de detalii despre utilizator (ex: email), poți extrage direct din token
+                var email = jsonToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+                var displayName = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "NoName";
 
-                // Get user details from Firebase Authentication
-                var firebaseUser = await FirebaseAuth.DefaultInstance.GetUserAsync(uid);
-
+                // Verifică dacă utilizatorul există în Firestore
                 var user = await _userRepository.GetUserByIdAsync(uid);
 
                 if (user == null)
                 {
-                    // Create user in Firestore if not exists
                     user = new User
                     {
                         Id = uid,
-                        Email = firebaseUser.Email,
-                        DisplayName = firebaseUser.DisplayName ?? "NoName"
+                        Email = email,
+                        DisplayName = displayName
                     };
 
                     await _userRepository.CreateUserAsync(user);
                 }
 
-                // Map to DTO
+                // Mapare DTO
                 var userDto = new UserDTO
                 {
                     Id = user.Id,
@@ -192,14 +199,13 @@ namespace PlataCuOra.Server.Services.Implementation
                     DisplayName = user.DisplayName
                 };
 
-                return (true, idToken, userDto, null);
+                return (true, idToken.idToken, userDto, null);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Google Login failed: {Message}", ex.Message);
-                return (false, null, null, $"Invalid token or error during Google login: {ex.Message}");
+                return (false, null, null, $"Eroare la login: {ex.Message}");
             }
         }
-
     }
 }

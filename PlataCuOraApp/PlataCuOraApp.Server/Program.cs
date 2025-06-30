@@ -1,4 +1,4 @@
-using FirebaseAdmin;
+﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,62 +30,33 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 // Set up logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
-// Load Firebase configuration
-var firebaseProjectId = builder.Configuration["Firebase:ProjectId"] ?? "platacuora";
-
-// Method 1: Try to load API key from appsettings.json
+// --- START CONFIGURATION LOADING ---
+// Încarcă configurația STRICT din variabilele de mediu setate în Cloud Run.
+var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 var firebaseApiKey = builder.Configuration["Firebase:ApiKey"];
 
-// Method 2: If not found in appsettings.json, try to load from file
-if (string.IsNullOrEmpty(firebaseApiKey))
+// Verificare strictă. Aplicația va crăpa la pornire dacă variabilele nu sunt setate.
+// Acest lucru te ajută să depanezi rapid, arătând eroarea în log-urile Cloud Run.
+if (string.IsNullOrEmpty(firebaseProjectId) || string.IsNullOrEmpty(firebaseApiKey))
 {
-    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
-    logger.LogWarning("API Key not found in configuration, trying to load from file");
-
-    string firebaseApiKeyFile = Path.Combine(Directory.GetCurrentDirectory(), "Keys", "firebaseApiKey.json");
-
-    if (File.Exists(firebaseApiKeyFile))
-    {
-        try
-        {
-            string apiKeyJson = File.ReadAllText(firebaseApiKeyFile);
-            using (JsonDocument doc = JsonDocument.Parse(apiKeyJson))
-            {
-                JsonElement root = doc.RootElement;
-                firebaseApiKey = root.GetProperty("apiKey").GetString();
-                logger.LogInformation("API Key loaded from file successfully");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to load API key from file");
-        }
-    }
-    else
-    {
-        logger.LogError("API key file not found at: {FilePath}", firebaseApiKeyFile);
-    }
+    throw new InvalidOperationException("EROARE CRITICĂ: Variabilele de mediu 'Firebase:ProjectId' sau 'Firebase:ApiKey' nu sunt configurate. Te rog, setează-le în setările serviciului Cloud Run.");
 }
 
-// Verify the API key is not empty
-if (string.IsNullOrEmpty(firebaseApiKey))
-{
-    throw new InvalidOperationException("Firebase API Key is missing. Please check your configuration or key files.");
-}
-
-// Initialize Firebase Admin
+// --- START FIREBASE INITIALIZATION ---
+// Inițializează Firebase Admin folosind contul de serviciu asociat cu instanța Cloud Run.
+// NU mai citește din fișiere locale.
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.FromFile("Keys/firebaseKey.json")
+    Credential = GoogleCredential.GetApplicationDefault(),
+    ProjectId = firebaseProjectId
 });
 
-// Set Environment variable for Firestore
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Keys/firebaseKey.json");
-
-// Configure services
+// --- START SERVICE REGISTRATION ---
+// Înregistrează serviciile Firebase folosind configurația încărcată.
 builder.Services.AddSingleton<FirestoreDb>(provider => FirestoreDb.Create(firebaseProjectId));
-builder.Services.AddSingleton(FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance);
+builder.Services.AddSingleton(FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance); // Această linie este corectă.
 builder.Services.AddSingleton<IFirebaseConfig>(new FirebaseConfig
 {
     ApiKey = firebaseApiKey,
@@ -114,39 +85,49 @@ builder.Services.AddScoped<IDeclaratieService, DeclaratieService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IHolidaysService, HolidaysService>();
 
-
-
 // Configure JWT authentication
+// Configure JWT authentication - FORMA CORECTĂ PENTRU FIREBASE
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Authority este SINGURA proprietate de care ai nevoie la acest nivel.
+        // Ea va seta corect emitentul (issuer) și va găsi automat cheile publice de la Google.
         options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
+            // Validează că token-ul a fost emis de proiectul tău Firebase.
             ValidateIssuer = true,
-            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+
+            // Validează că token-ul este destinat pentru API-ul tău (audiența este ID-ul proiectului).
             ValidateAudience = true,
             ValidAudience = firebaseProjectId,
-            ValidateLifetime = true
+
+            // Validează că token-ul nu a expirat.
+            ValidateLifetime = true,
+
+            // Foarte important: Asigură-te că semnătura este validată folosind cheile publice.
+            ValidateIssuerSigningKey = true
         };
     });
 
+// Configure CORS
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularClient", policy =>
     {
         policy.WithOrigins(
-            "https://127.0.0.1:4200",
-            "http://localhost:4200",
-            "https://localhost:4200",
-            "http://127.0.0.1:4200"
+            "https://platacuora.web.app",
+            "https://platacuora.firebaseapp.com",
+            "http://localhost:4200"
         )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
+
 
 // Configure HttpClient
 builder.Services.AddHttpClient();
@@ -181,20 +162,41 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(Int32.Parse(port));
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// UseCors trebuie să fie înainte de Authentication
 app.UseCors("AllowAngularClient");
+
+// Swagger + OPTIONS preflight
 app.UseSwagger();
 app.UseSwaggerUI();
 
-//app.UseHttpsRedirection();
+// Middleware ca să răspundă la OPTIONS (preflight) fără 401
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        await context.Response.CompleteAsync();
+    }
+    else
+    {
+        await next();
+    }
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Swagger
+// Swagger root redirect
 app.MapGet("/", context =>
 {
     context.Response.Redirect("/swagger/index.html");

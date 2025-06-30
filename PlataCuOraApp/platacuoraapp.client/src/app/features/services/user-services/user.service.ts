@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+//import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, of, throwError, timer } from 'rxjs';
 import { User } from '../../../models/user.model';
 import { LoginRequest } from '../../../models/login-request.model';
 import { environment } from '../../../environment/environment';
 import { RegisterRequest } from '../../../models/register-request.model';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class UserService {
   public user$: Observable<User | null> = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.validateToken();
+    //this.validateToken();
   }
  
   getUserId(): string | null {
@@ -38,14 +39,16 @@ export class UserService {
       );
   }
 
-  // Add Google login method
   googleLogin(idToken: string): Observable<any> {
-    return this.http.post<any>(`${environment.apiBaseUrl}/api/user/google-login`, JSON.stringify(idToken), {
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return this.http.post<any>(
+      `${environment.apiBaseUrl}/api/user/google-login`,
+      { idToken },
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
       .pipe(
         map((response: any) => {
-          // If successful, update the user state immediately
           if (response.user && response.token) {
             sessionStorage.setItem('token', response.token);
             this.setLoggedInUser(response.user);
@@ -70,21 +73,21 @@ export class UserService {
     return timer(0).pipe(map(() => {}));
   }
 
-  validateToken(): void {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      this.logout();
-      return;
-    }
+  //validateToken(): void {
+  //  const token = sessionStorage.getItem('token');
+  //  if (!token) {
+  //    this.logout();
+  //    return;
+  //  }
 
-    this.http.post<{valid: boolean}>(`${environment.apiBaseUrl}/api/user/verify-token`, { token })
-      .pipe(catchError(() => of({ valid: false })))
-      .subscribe(response => {
-        if (!response.valid) {
-          this.logout();
-        }
-      });
-  }
+  //  this.http.post<{valid: boolean}>(`${environment.apiBaseUrl}/api/user/verify-token`, { token })
+  //    .pipe(catchError(() => of({ valid: false })))
+  //    .subscribe(response => {
+  //      if (!response.valid) {
+  //        this.logout();
+  //      }
+  //    });
+  //}
 
   // Add method to get current user info from backend (useful for token validation)
   getCurrentUserFromBackend(): Observable<User> {

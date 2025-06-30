@@ -1,9 +1,11 @@
+﻿// ADAUGĂ ACEST USING PENTRU LOGARE
+using Microsoft.Extensions.Logging;
+
 using Microsoft.AspNetCore.Mvc;
-using PlataCuOra.Server.Domain;
-using PlataCuOra.Server.Repository.Interface;
 using PlataCuOra.Server.Services.Interfaces;
 using PlataCuOraApp.Server.Domain.DTOs;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PlataCuOra.Server.Controllers
 {
@@ -13,11 +15,15 @@ namespace PlataCuOra.Server.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserService _userService;
+        // ADAUGĂ CÂMPUL PENTRU LOGGER
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IAuthService authService, IUserService userService)
+        // MODIFICĂ CONSTRUCTORUL PENTRU A PRIMI LOGGER-UL
+        public UserController(IAuthService authService, IUserService userService, ILogger<UserController> logger)
         {
             _authService = authService;
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -25,7 +31,7 @@ namespace PlataCuOra.Server.Controllers
         {
             var (success, error) = await _authService.RegisterUserAsync(request);
 
-            if(success)
+            if (success)
             {
                 return Ok(new { message = "User registered succesfully" });
             }
@@ -37,7 +43,7 @@ namespace PlataCuOra.Server.Controllers
         {
             var (success, token, userData, error) = await _authService.LoginUserAsync(request);
 
-            if(!success)
+            if (!success)
             {
                 return Unauthorized(new { message = error });
             }
@@ -50,27 +56,44 @@ namespace PlataCuOra.Server.Controllers
             });
         }
 
-        [HttpPost("verify-token")]
-        public async Task<IActionResult> VerifyTokenAsync([FromBody] TokenVerificationRequest request)
-        {
-            var isValid = await _authService.VerifyTokenAsync(request.Token);
-            return Ok(new { valid = isValid });
-        }
+        //[HttpPost("verify-token")]
+        //public async Task<IActionResult> VerifyTokenAsync([FromBody] TokenVerificationRequest request)
+        //{
+        //    var isValid = await _authService.VerifyTokenAsync(request.Token);
+        //    return Ok(new { valid = isValid });
+        //}
 
         [HttpPost("google-login")]
-        public async Task<IActionResult> LoginWithGoogleAsync([FromBody] string idToken)
+        public async Task<IActionResult> LoginWithGoogleAsync([FromBody] GoogleLoginRequestDTO request)
         {
-            var (success, token, user, error) = await _authService.LoginWithGoogleAsync(idToken);
+            _logger.LogInformation("IdToken primit din body: {IdToken}", request.idToken);
+            var token2 = Request.Headers["Authorization"];
+            _logger.LogInformation($"Token primit: {token2}");
 
-            if (!success)
-                return Unauthorized(new { message = error });
+            if (string.IsNullOrWhiteSpace(request.idToken))
+                return BadRequest(new { message = "IdToken is required." });
 
-            return Ok(new
+            try
             {
-                message = "Google login successful.",
-                token,
-                user
-            });
+                var (success, token, user, error) = await _authService.LoginWithGoogleAsync(request);
+
+                if (!success)
+                    return Unauthorized(new { message = error });
+
+                _logger.LogInformation("User dupa LoginWithGoogle: {@user}", user);
+
+                return Ok(new
+                {
+                    message = "Google login successful.",
+                    token,
+                    user
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Eroare la LoginWithGoogleAsync");
+                return StatusCode(500, new { message = "A aparut o eroare interna." });
+            }
         }
 
         [HttpGet("{id}")]
@@ -83,7 +106,5 @@ namespace PlataCuOra.Server.Controllers
 
             return Ok(user);
         }
-
-
     }
 }

@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 import { OrarService } from '../services/orar-services/orar-service.service';
 import { OrarEntry } from '../../models/orar-entry.model';
+import { UserService } from '../services/user-services/user.service';
 
 @Component({
   selector: 'app-orar',
@@ -21,18 +22,22 @@ export class OrarComponent implements OnInit {
   orarUserList: OrarEntry[] = []; 
   editIndex: number | null = null;
 
+  userId: string | null = null; // ID-ul utilizatorului, dacă este necesar
+
   // Array pentru dropdown-uri
   zileSaptamana = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
   tipuriSaptamana = ['Pară', 'Impară'];
 
-  constructor(private orarService: OrarService) {}
+  constructor(private orarService: OrarService, private userService: UserService) {
+    this.userId = this.userService.getUserId();
+  }
 
   ngOnInit() {
     this.getOrar();
   }
 
   getOrar() {
-    this.orarService.getAll().subscribe((data: OrarEntry[]) => this.orar = data ?? []);
+    this.orarService.getAll(this.userId!!).subscribe((data: OrarEntry[]) => this.orar = data ?? []);
   }
 
   getEmptyEntry(): OrarEntry {
@@ -75,7 +80,7 @@ export class OrarComponent implements OnInit {
   }
 
   addRow() {
-    this.orarService.add(this.newEntry).subscribe({
+    this.orarService.add(this.userId!!, this.newEntry).subscribe({
       next: (): void => {
         this.getOrar();
         this.newEntry = this.getEmptyEntry();
@@ -85,7 +90,7 @@ export class OrarComponent implements OnInit {
 
   deleteRow(index: number) {
     const entry = this.orar[index];
-    this.orarService.delete(entry).subscribe({
+    this.orarService.delete(this.userId!!, entry).subscribe({
       next: (): void => this.getOrar(),
       error: (err: any): void => alert('Eroare la ștergere!')
     });
@@ -98,7 +103,7 @@ export class OrarComponent implements OnInit {
   saveEdit(index: number) {
     const oldEntry = { ...this.orar[index] };
     const newEntry = this.orar[index];
-    this.orarService.update(oldEntry, newEntry).subscribe({
+    this.orarService.update(this.userId!!, oldEntry, newEntry).subscribe({
       next: (): void => {
         this.selectedRow = null;
         this.getOrar();
