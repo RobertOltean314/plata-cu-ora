@@ -31,7 +31,7 @@ export class AuthService {
     });
   }
 
-  async signInWithGoogle(): Promise<any> {
+  async signInWithGoogle(): Promise<{ idToken: string, user: User }> {
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
@@ -40,13 +40,10 @@ export class AuthService {
       const result = await signInWithPopup(this.firebaseService.auth, provider);
       const idToken = await result.user.getIdToken();
 
-      // Send token to backend and get your app's user data and JWT
-      const response = await this.sendTokenToBackend(idToken);
-      return response;
+      return { idToken, user: result.user };
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
-      
-      // Handle specific Firebase errors
+
       if (error.code === 'auth/popup-closed-by-user') {
         throw new Error('Sign-in was cancelled');
       } else if (error.code === 'auth/popup-blocked') {
@@ -63,23 +60,6 @@ export class AuthService {
       this.firebaseUserSubject.next(null);
     } catch (error: any) {
       console.error('Error signing out:', error);
-      throw error;
-    }
-  }
-
-  private async sendTokenToBackend(idToken: string): Promise<any> {
-    try {
-      // Send the token as a raw string to match your backend signature [FromBody] string idToken
-      const response = await this.http.post(`${environment.apiBaseUrl}/api/user/google-login`, 
-        JSON.stringify(idToken), // Send as raw string to match your controller
-        {
-          headers: { 'Content-Type': 'application/json' }
-        }
-      ).toPromise();
-      
-      return response;
-    } catch (error: any) {
-      console.error('Error sending token to backend:', error);
       throw error;
     }
   }

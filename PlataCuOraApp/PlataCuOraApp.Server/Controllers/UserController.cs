@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlataCuOra.Server.Services.Interfaces;
 using PlataCuOraApp.Server.Domain.DTOs;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PlataCuOra.Server.Controllers
 {
@@ -62,56 +63,37 @@ namespace PlataCuOra.Server.Controllers
             return Ok(new { valid = isValid });
         }
 
-
-        //
-        // AICI ESTE METODA MODIFICATĂ CU LOG-URI
-        //
         [HttpPost("google-login")]
-        public async Task<IActionResult> LoginWithGoogleAsync()
+        public async Task<IActionResult> LoginWithGoogleAsync([FromBody] GoogleLoginRequestDTO request)
         {
-            _logger.LogInformation("--- Endpoint /api/user/google-login a fost apelat. ---");
+            _logger.LogInformation("IdToken primit din body: {IdToken}", request.idToken);
+            var token2 = Request.Headers["Authorization"];
+            _logger.LogInformation($"Token primit: {token2}");
 
-            // Încercăm să extragem header-ul
-            string authorizationHeader = Request.Headers["Authorization"];
+            if (string.IsNullOrWhiteSpace(request.idToken))
+                return BadRequest(new { message = "IdToken is required." });
 
-            // Logăm exact ce am primit, ca să vedem cu ochii noștri
-            if (string.IsNullOrEmpty(authorizationHeader))
+            try
             {
-                _logger.LogWarning("Header-ul 'Authorization' este GOL sau NULL.");
+                var (success, token, user, error) = await _authService.LoginWithGoogleAsync(request);
+
+                if (!success)
+                    return Unauthorized(new { message = error });
+
+                _logger.LogInformation("User dupa LoginWithGoogle: {@user}", user);
+
+                return Ok(new
+                {
+                    message = "Google login successful.",
+                    token,
+                    user
+                });
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInformation("Am primit header-ul 'Authorization' cu valoarea: '{AuthHeader}'", authorizationHeader);
+                _logger.LogError(ex, "Eroare la LoginWithGoogleAsync");
+                return StatusCode(500, new { message = "A aparut o eroare interna." });
             }
-
-            // Aici este validarea pe care o suspectăm că eșuează
-            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("VALIDAREA A EȘUAT: Header-ul lipsește sau nu începe cu 'Bearer '.");
-                return BadRequest(new { message = "Missing or invalid Authorization header." });
-            }
-
-            // Dacă ajungem aici, înseamnă că validarea a trecut
-            _logger.LogInformation("Validarea header-ului a trecut. Se extrage token-ul și se apelează serviciul.");
-
-            string idToken = authorizationHeader.Substring("Bearer ".Length);
-
-            var (success, token, user, error) = await _authService.LoginWithGoogleAsync(idToken);
-
-            if (!success)
-            {
-                // Logăm eroarea primită de la serviciu
-                _logger.LogError("Serviciul de autentificare a eșuat. Eroare: {Error}", error);
-                return Unauthorized(new { message = error });
-            }
-
-            _logger.LogInformation("Autentificarea prin serviciu a reușit. Se returnează răspunsul OK.");
-            return Ok(new
-            {
-                message = "Google login successful.",
-                token,
-                user
-            });
         }
     }
 }

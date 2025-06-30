@@ -42,7 +42,8 @@ if (string.IsNullOrEmpty(firebaseProjectId) || string.IsNullOrEmpty(firebaseApiK
 // NU mai citește din fișiere locale.
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.GetApplicationDefault()
+    Credential = GoogleCredential.GetApplicationDefault(),
+    ProjectId = firebaseProjectId
 });
 
 // --- START SERVICE REGISTRATION ---
@@ -90,23 +91,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Configure CORS
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularClient", policy =>
     {
         policy.WithOrigins(
-            "https://127.0.0.1:4200",
-            "http://localhost:4200",
-            "https://localhost:4200",
-            "http://127.0.0.1:4200",
             "https://platacuora.web.app",
-            "https://platacuora.firebaseapp.com"
+            "https://platacuora.firebaseapp.com",
+            "http://localhost:4200"
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
     });
 });
+
 
 // Configure HttpClient
 builder.Services.AddHttpClient();
@@ -149,14 +149,19 @@ builder.WebHost.ConfigureKestrel(options =>
 
 var app = builder.Build();
 
+// UseCors trebuie să fie înainte de Authentication
 app.UseCors("AllowAngularClient");
 
-// OPTIONS middleware (bypass authentication for preflight requests)
+// Swagger + OPTIONS preflight
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// Middleware ca să răspundă la OPTIONS (preflight) fără 401
 app.Use(async (context, next) =>
 {
-    if (context.Request.Method == HttpMethods.Options)
+    if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
     {
-        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
         await context.Response.CompleteAsync();
     }
     else
@@ -165,16 +170,12 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
-//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Swagger
+// Swagger root redirect
 app.MapGet("/", context =>
 {
     context.Response.Redirect("/swagger/index.html");

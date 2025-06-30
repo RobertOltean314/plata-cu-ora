@@ -12,6 +12,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.IdentityModel.Tokens.Jwt;
 
 
 namespace PlataCuOra.Server.Services.Implementation
@@ -157,37 +158,125 @@ namespace PlataCuOra.Server.Services.Implementation
             }
         }
 
-        public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(string idToken)
+        //public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(GoogleLoginRequestDTO idToken)
+        //{
+        //    if (string.IsNullOrEmpty(idToken.idToken))
+        //    {
+        //        _logger.LogWarning("idToken is null or empty.");
+        //        return (false, null, null, "Invalid token.");
+        //    }
+        //    try
+        //    {
+        //        FirebaseToken decodedToken;
+
+        //        try
+        //        {
+        //            _logger.LogInformation("Verifying Google ID token...");
+        //            decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken.idToken);
+        //            _logger.LogInformation("Token verified successfully for UID: {uid}", decodedToken.Uid);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError(ex,
+        //                "VerifyIdTokenAsync threw an exception with idToken: {token}. Exception message: {message}",
+        //                idToken.idToken,
+        //                ex.Message);
+        //            throw;
+        //        }
+
+        //        string uid = decodedToken.Uid;
+
+        //        User? user = null;
+        //        try
+        //        {
+        //            user = await _userRepository.GetUserByIdAsync(uid);
+        //        }
+        //        catch (Exception exDb)
+        //        {
+        //            _logger.LogError(exDb, "Database error while retrieving user with UID: {uid}", uid);
+        //            return (false, null, null, "Internal DB error.");
+        //        }
+
+        //        if (user == null)
+        //        {
+        //            var email = decodedToken.Claims.GetValueOrDefault("email")?.ToString();
+        //            var displayName = decodedToken.Claims.GetValueOrDefault("name")?.ToString() ?? "NoName";
+
+        //            try
+        //            {
+        //                user = new User
+        //                {
+        //                    Id = uid,
+        //                    Email = email,
+        //                    DisplayName = displayName
+        //                };
+        //                await _userRepository.CreateUserAsync(user);
+        //            }
+        //            catch (Exception exCreate)
+        //            {
+        //                _logger.LogError(exCreate, "Database error while creating user with UID: {uid}", uid);
+        //                return (false, null, null, "Internal DB error while creating user.");
+        //            }
+        //        }
+
+        //        string customToken = await _firebaseAuth.CreateCustomTokenAsync(uid);
+        //        _logger.LogInformation("Custom token created for UID: {uid}", uid);
+
+        //        var userDto = new UserDTO
+        //        {
+        //            Id = user.Id,
+        //            Email = user.Email,
+        //            DisplayName = user.DisplayName
+        //        };
+
+        //        return (true, customToken, userDto, null);
+        //    }
+        //    catch (FirebaseAuthException authEx)
+        //    {
+        //        _logger.LogError(authEx, "FirebaseAuthException. ErrorCode: {errorCode}.", authEx.AuthErrorCode);
+        //        return (false, null, null, $"Firebase authentication failed: {authEx.Message}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An unexpected exception occurred in LoginWithGoogleAsync: {message}", ex.Message);
+        //        return (false, null, null, "Internal server error.");
+        //    }
+        //}
+
+        public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(GoogleLoginRequestDTO idToken)
         {
             try
             {
-                // FOLOSEȘTE _firebaseAuth, instanța injectată!
-                _logger.LogInformation("Attempting to verify Google ID token using the injected FirebaseAuth instance...");
-                FirebaseToken decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken);
-                _logger.LogInformation("Token verified successfully for UID: {uid}", decodedToken.Uid);
+                // Folosește Firebase Admin SDK doar pentru a extrage UID, dacă chiar e necesar.
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadJwtToken(idToken.idToken);
+                var uid = jsonToken.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
 
-                string uid = decodedToken.Uid;
+                if (string.IsNullOrEmpty(uid))
+                {
+                    return (false, null, null, "Token invalid: UID nu a putut fi extras.");
+                }
+
+                // Dacă ai nevoie de detalii despre utilizator (ex: email), poți extrage direct din token
+                var email = jsonToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+                var displayName = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "NoName";
+
+                // Verifică dacă utilizatorul există în Firestore
                 var user = await _userRepository.GetUserByIdAsync(uid);
 
                 if (user == null)
                 {
-                    string email = decodedToken.Claims.GetValueOrDefault("email")?.ToString();
-                    string displayName = decodedToken.Claims.GetValueOrDefault("name")?.ToString() ?? "NoName";
-
-                    _logger.LogInformation("User with UID {uid} not found in DB. Creating new user.", uid);
                     user = new User
                     {
                         Id = uid,
                         Email = email,
                         DisplayName = displayName
                     };
+
                     await _userRepository.CreateUserAsync(user);
                 }
 
-                // FOLOSEȘTE _firebaseAuth ȘI AICI!
-                string customToken = await _firebaseAuth.CreateCustomTokenAsync(uid);
-                _logger.LogInformation("Successfully created custom token for UID {uid}.", uid);
-
+                // Mapare DTO
                 var userDto = new UserDTO
                 {
                     Id = user.Id,
@@ -195,17 +284,12 @@ namespace PlataCuOra.Server.Services.Implementation
                     DisplayName = user.DisplayName
                 };
 
-                return (true, customToken, userDto, null);
-            }
-            catch (FirebaseAuthException authEx)
-            {
-                _logger.LogError(authEx, "FirebaseAuthException occurred. ErrorCode: {errorCode}. Message: {message}", authEx.AuthErrorCode, authEx.Message);
-                return (false, null, null, $"Firebase authentication failed: {authEx.Message}");
+                return (true, idToken.idToken, userDto, null);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected generic exception occurred in LoginWithGoogleAsync.");
-                return (false, null, null, "An internal server error occurred.");
+                _logger.LogError(ex, "Google Login failed: {Message}", ex.Message);
+                return (false, null, null, $"Eroare la login: {ex.Message}");
             }
         }
     }

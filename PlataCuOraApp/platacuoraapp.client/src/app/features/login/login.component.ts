@@ -72,19 +72,32 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginError = '';
 
     try {
-      const authResult = await this.authService.signInWithGoogle();
-      
-      if (authResult && authResult.token && authResult.user) {
-        this.userService.setLoggedInUser(authResult.user);
-        sessionStorage.setItem('token', authResult.token);
-        this.router.navigate(['/']);
+      const googleAuthResult = await this.authService.signInWithGoogle();
+
+      if (googleAuthResult && googleAuthResult.idToken) {
+        this.googleLoginSubscription = this.userService.googleLogin(googleAuthResult.idToken).subscribe({
+          next: (response) => {
+            if (response.token && response.user) {
+              this.userService.setLoggedInUser(response.user);
+              sessionStorage.setItem('token', response.token);
+              this.router.navigate(['/']);
+            } else {
+              this.loginError = 'Authentication failed - no user data received from backend';
+            }
+            this.isGoogleLoading = false;
+          },
+          error: (err) => {
+            console.error('Error logging in with backend:', err);
+            this.loginError = 'Login failed on backend.';
+            this.isGoogleLoading = false;
+          }
+        });
       } else {
-        throw new Error('Authentication failed - no user data received');
+        throw new Error('Google authentication failed - no token received');
       }
     } catch (error: any) {
       console.error('Google sign-in failed:', error);
       this.loginError = error.message || 'Google sign-in failed. Please try again.';
-    } finally {
       this.isGoogleLoading = false;
     }
   }

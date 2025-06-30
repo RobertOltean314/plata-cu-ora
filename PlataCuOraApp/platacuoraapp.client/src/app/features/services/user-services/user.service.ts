@@ -15,7 +15,8 @@ export class UserService {
   public user$: Observable<User | null> = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.validateToken();
+    //this.validateToken();
+    const token = sessionStorage.getItem('token');
   }
  
   getUserId(): string | null {
@@ -39,24 +40,18 @@ export class UserService {
       );
   }
 
-  // Add Google login method
   googleLogin(idToken: string): Observable<any> {
-    const url = `${environment.apiBaseUrl}/api/user/google-login`;
-
-    // 1. Creează headerele, inclusiv cel de Authorization
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${idToken}` // AICI ESTE CHEIA!
-    });
-
-    // 2. Fă request-ul POST cu headerele setate și un BODY GOL `{}`
-    return this.http.post<any>(url, {}, { headers: headers })
+    return this.http.post<any>(
+      `${environment.apiBaseUrl}/api/user/google-login`,
+      { idToken },
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
       .pipe(
         map((response: any) => {
-          // Logica ta de după succes este deja bună, o păstrăm
-          if (response && response.user && response.token) {
-            console.log('Backend login successful, received new app token:', response.token);
-            sessionStorage.setItem('token', response.token); // Salvezi token-ul NOU de la backend
+          if (response.user && response.token) {
+            sessionStorage.setItem('token', response.token);
             this.setLoggedInUser(response.user);
           }
           return response;
