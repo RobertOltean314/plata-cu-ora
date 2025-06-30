@@ -27,4 +27,10 @@ export class ParitateSaptService {
   delete(userId: string, entry: ParitateSaptamana): Observable<any> {
     return this.http.request('delete', `${this.baseUrl}/${userId}`, { body: entry });
   }
+
+  replaceAll(userId: string, entries: ParitateSaptamana[]): Observable<any> {
+    return this.http.put(`${this.baseUrl}/replace/${userId}`, entries);
+  }
+ 
 }
+
