@@ -56,12 +56,12 @@ namespace PlataCuOra.Server.Controllers
             });
         }
 
-        [HttpPost("verify-token")]
-        public async Task<IActionResult> VerifyTokenAsync([FromBody] TokenVerificationRequest request)
-        {
-            var isValid = await _authService.VerifyTokenAsync(request.Token);
-            return Ok(new { valid = isValid });
-        }
+        //[HttpPost("verify-token")]
+        //public async Task<IActionResult> VerifyTokenAsync([FromBody] TokenVerificationRequest request)
+        //{
+        //    var isValid = await _authService.VerifyTokenAsync(request.Token);
+        //    return Ok(new { valid = isValid });
+        //}
 
         [HttpPost("google-login")]
         public async Task<IActionResult> LoginWithGoogleAsync([FromBody] GoogleLoginRequestDTO request)

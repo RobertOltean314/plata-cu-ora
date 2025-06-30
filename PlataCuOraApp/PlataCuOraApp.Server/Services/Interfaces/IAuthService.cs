@@ -7,7 +7,7 @@ namespace PlataCuOra.Server.Services.Interfaces
     {
         Task<(bool success, string token, object userData, string error)> LoginUserAsync(LoginRequestDTO request);
         Task<(bool success, string error)> RegisterUserAsync(RegisterRequestDTO request);
-        Task<bool> VerifyTokenAsync(string token);
+        //Task<bool> VerifyTokenAsync(string token);
         Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(GoogleLoginRequestDTO idToken);
 
     }

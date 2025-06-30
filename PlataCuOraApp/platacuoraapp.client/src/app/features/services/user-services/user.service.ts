@@ -16,7 +16,6 @@ export class UserService {
 
   constructor(private http: HttpClient) {
     //this.validateToken();
-    const token = sessionStorage.getItem('token');
   }
  
   getUserId(): string | null {
@@ -74,21 +73,21 @@ export class UserService {
     return timer(0).pipe(map(() => {}));
   }
 
-  validateToken(): void {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      this.logout();
-      return;
-    }
+  //validateToken(): void {
+  //  const token = sessionStorage.getItem('token');
+  //  if (!token) {
+  //    this.logout();
+  //    return;
+  //  }
 
-    this.http.post<{valid: boolean}>(`${environment.apiBaseUrl}/api/user/verify-token`, { token })
-      .pipe(catchError(() => of({ valid: false })))
-      .subscribe(response => {
-        if (!response.valid) {
-          this.logout();
-        }
-      });
-  }
+  //  this.http.post<{valid: boolean}>(`${environment.apiBaseUrl}/api/user/verify-token`, { token })
+  //    .pipe(catchError(() => of({ valid: false })))
+  //    .subscribe(response => {
+  //      if (!response.valid) {
+  //        this.logout();
+  //      }
+  //    });
+  //}
 
   // Add method to get current user info from backend (useful for token validation)
   getCurrentUserFromBackend(): Observable<User> {

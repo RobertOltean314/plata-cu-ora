@@ -16,18 +16,18 @@ namespace PlataCuOraApp.Server.Infrastructure.Helpers
             _logger = logger;
         }
 
-        public async Task<bool> ValidateTokenAsync(string token)
-        {
-            try
-            {
-                var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
-                return decodedToken != null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Token validation failed");
-                return false;
-            }
-        }
+        //public async Task<bool> ValidateTokenAsync(string token)
+        //{
+        //    try
+        //    {
+        //        var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
+        //        return decodedToken != null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogWarning(ex, "Token validation failed");
+        //        return false;
+        //    }
+        //}
     }
 }

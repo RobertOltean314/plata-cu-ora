@@ -86,17 +86,28 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IHolidaysService, HolidaysService>();
 
 // Configure JWT authentication
+// Configure JWT authentication - FORMA CORECTĂ PENTRU FIREBASE
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Authority este SINGURA proprietate de care ai nevoie la acest nivel.
+        // Ea va seta corect emitentul (issuer) și va găsi automat cheile publice de la Google.
         options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
+            // Validează că token-ul a fost emis de proiectul tău Firebase.
             ValidateIssuer = true,
-            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+
+            // Validează că token-ul este destinat pentru API-ul tău (audiența este ID-ul proiectului).
             ValidateAudience = true,
             ValidAudience = firebaseProjectId,
-            ValidateLifetime = true
+
+            // Validează că token-ul nu a expirat.
+            ValidateLifetime = true,
+
+            // Foarte important: Asigură-te că semnătura este validată folosind cheile publice.
+            ValidateIssuerSigningKey = true
         };
     });
 

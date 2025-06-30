@@ -144,102 +144,17 @@ namespace PlataCuOra.Server.Services.Implementation
             }
         }
 
-        public async Task<bool> VerifyTokenAsync(string token)
-        {
-            try
-            {
-                var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
-                return decodedToken != null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Token verification failed");
-                return false;
-            }
-        }
-
-        //public async Task<(bool Success, string? Token, UserDTO? User, string? Error)> LoginWithGoogleAsync(GoogleLoginRequestDTO idToken)
+        //public async Task<bool> VerifyTokenAsync(string token)
         //{
-        //    if (string.IsNullOrEmpty(idToken.idToken))
-        //    {
-        //        _logger.LogWarning("idToken is null or empty.");
-        //        return (false, null, null, "Invalid token.");
-        //    }
         //    try
         //    {
-        //        FirebaseToken decodedToken;
-
-        //        try
-        //        {
-        //            _logger.LogInformation("Verifying Google ID token...");
-        //            decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken.idToken);
-        //            _logger.LogInformation("Token verified successfully for UID: {uid}", decodedToken.Uid);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError(ex,
-        //                "VerifyIdTokenAsync threw an exception with idToken: {token}. Exception message: {message}",
-        //                idToken.idToken,
-        //                ex.Message);
-        //            throw;
-        //        }
-
-        //        string uid = decodedToken.Uid;
-
-        //        User? user = null;
-        //        try
-        //        {
-        //            user = await _userRepository.GetUserByIdAsync(uid);
-        //        }
-        //        catch (Exception exDb)
-        //        {
-        //            _logger.LogError(exDb, "Database error while retrieving user with UID: {uid}", uid);
-        //            return (false, null, null, "Internal DB error.");
-        //        }
-
-        //        if (user == null)
-        //        {
-        //            var email = decodedToken.Claims.GetValueOrDefault("email")?.ToString();
-        //            var displayName = decodedToken.Claims.GetValueOrDefault("name")?.ToString() ?? "NoName";
-
-        //            try
-        //            {
-        //                user = new User
-        //                {
-        //                    Id = uid,
-        //                    Email = email,
-        //                    DisplayName = displayName
-        //                };
-        //                await _userRepository.CreateUserAsync(user);
-        //            }
-        //            catch (Exception exCreate)
-        //            {
-        //                _logger.LogError(exCreate, "Database error while creating user with UID: {uid}", uid);
-        //                return (false, null, null, "Internal DB error while creating user.");
-        //            }
-        //        }
-
-        //        string customToken = await _firebaseAuth.CreateCustomTokenAsync(uid);
-        //        _logger.LogInformation("Custom token created for UID: {uid}", uid);
-
-        //        var userDto = new UserDTO
-        //        {
-        //            Id = user.Id,
-        //            Email = user.Email,
-        //            DisplayName = user.DisplayName
-        //        };
-
-        //        return (true, customToken, userDto, null);
-        //    }
-        //    catch (FirebaseAuthException authEx)
-        //    {
-        //        _logger.LogError(authEx, "FirebaseAuthException. ErrorCode: {errorCode}.", authEx.AuthErrorCode);
-        //        return (false, null, null, $"Firebase authentication failed: {authEx.Message}");
+        //        var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(token);
+        //        return decodedToken != null;
         //    }
         //    catch (Exception ex)
         //    {
-        //        _logger.LogError(ex, "An unexpected exception occurred in LoginWithGoogleAsync: {message}", ex.Message);
-        //        return (false, null, null, "Internal server error.");
+        //        _logger.LogWarning(ex, "Token verification failed");
+        //        return false;
         //    }
         //}
 

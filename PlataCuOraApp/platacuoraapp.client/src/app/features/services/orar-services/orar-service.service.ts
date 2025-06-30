@@ -4,66 +4,35 @@ import { Observable, switchMap, take } from 'rxjs';
 
 import { OrarEntry } from '../../../models/orar-entry.model';
 import { UserService } from '../../services/user-services/user.service'; // Try this path
+import { environment } from '../../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrarService {
-  private apiUrl = 'https://localhost:49219/api/OrarUser';
+  private apiUrl = environment.apiBaseUrl + '/api/OrarUser';
 
   constructor(
     private http: HttpClient,
     private userService: UserService
   ) {}
 
-  getAll(): Observable<OrarEntry[]> {
-    return this.userService.getLoggedInUser().pipe(
-      take(1),
-      switchMap(user => {
-        if (!user?.id) {
-          throw new Error('User not logged in');
-        }
-        return this.http.get<OrarEntry[]>(`${this.apiUrl}/${user.id}`);
-      })
-    );
+  getAll(userId: string): Observable<OrarEntry[]> {
+    return this.http.get<OrarEntry[]>(`${this.apiUrl}/${userId}`);
   }
 
-  add(entry: OrarEntry): Observable<string> {
-    return this.userService.getLoggedInUser().pipe(
-      take(1),
-      switchMap(user => {
-        if (!user?.id) {
-          throw new Error('User not logged in');
-        }
-        return this.http.post(`${this.apiUrl}/${user.id}`, entry, { responseType: 'text' });
-      })
-    );
+  add(userId: string, entry: OrarEntry): Observable<string> {
+    return this.http.post(`${this.apiUrl}/${userId}`, entry, { responseType: 'text' });
   }
 
-  update(oldEntry: OrarEntry, newEntry: OrarEntry): Observable<string> {
-    return this.userService.getLoggedInUser().pipe(
-      take(1),
-      switchMap(user => {
-        if (!user?.id) {
-          throw new Error('User not logged in');
-        }
-        return this.http.put(`${this.apiUrl}/${user.id}`, { oldEntry, newEntry }, { responseType: 'text' });
-      })
-    );
+  update(userId: string, oldEntry: OrarEntry, newEntry: OrarEntry): Observable<string> {
+    return this.http.put(`${this.apiUrl}/${userId}`, { oldEntry, newEntry }, { responseType: 'text' });
   }
 
-  delete(entry: OrarEntry): Observable<string> {
-    return this.userService.getLoggedInUser().pipe(
-      take(1),
-      switchMap(user => {
-        if (!user?.id) {
-          throw new Error('User not logged in');
-        }
-        return this.http.request('delete', `${this.apiUrl}/${user.id}`, { 
-          body: entry, 
-          responseType: 'text' 
-        });
-      })
-    );
+  delete(userId: string, entry: OrarEntry): Observable<string> {
+    return this.http.request('delete', `${this.apiUrl}/${userId}`, {
+      body: entry,
+      responseType: 'text'
+    });
   }
 }
