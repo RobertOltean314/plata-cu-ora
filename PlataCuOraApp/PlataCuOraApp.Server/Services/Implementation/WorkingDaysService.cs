@@ -3,56 +3,66 @@ using PlataCuOraApp.Server.Domain.DTO;
 using PlataCuOraApp.Server.Domain.DTOs;
 using PlataCuOraApp.Server.Services.Interfaces;
 using System.Globalization;
-using System.Text.Json;
 
 namespace PlataCuOraApp.Server.Services
 {
     public class WorkingDaysService : IWorkingDaysService
     {
         private readonly FirestoreDb _db;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHolidaysService _holidaysService;
 
-        public WorkingDaysService(FirestoreDb db, IHttpClientFactory httpClientFactory)
+        public WorkingDaysService(FirestoreDb db, IHolidaysService holidaysService)
         {
             _db = db;
-            _httpClientFactory = httpClientFactory;
+            _holidaysService = holidaysService;
         }
 
         public async Task<List<WorkingDayDTO>> GetWorkingDaysAsync(string userId, DateTime startDate, DateTime endDate)
         {
             var workingDays = new List<WorkingDayDTO>();
+            var holidayDates = new HashSet<DateTime>();
+
+            for (int year = startDate.Year; year <= endDate.Year; year++)
+            {
+                var holidays = await _holidaysService.GetHolidaysAsync(year);
+                foreach (var holiday in holidays)
+                {
+                    if (holiday.Dates != null)
+                    {
+                        foreach (var dateDetail in holiday.Dates)
+                        {
+                            var formats = new[] { "yyyy-MM-dd", "yyyy/MM/dd" };
+                            if (DateTime.TryParseExact(dateDetail.Date, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                            {
+                                holidayDates.Add(dt.Date);
+                            }
+                        }
+                    }
+                }
+            }
 
             var docRef = _db.Collection("paritateSapt").Document(userId);
             var docSnap = await docRef.GetSnapshotAsync();
 
-            if (!docSnap.Exists ||
-                !docSnap.TryGetValue("saptamani", out object saptamaniObj) ||
-                saptamaniObj == null ||
-                !(saptamaniObj is IEnumerable<object> saptamaniEnumerable))
-            {
-                for (DateTime day = startDate.Date; day <= endDate.Date; day = day.AddDays(1))
-                {
-                    workingDays.Add(new WorkingDayDTO
-                    {
-                        Date = day.ToString("yyyy-MM-dd"),
-                        DayOfWeek = day.DayOfWeek.ToString(),
-                        IsWorkingDay = false,
-                        Parity = ""
-                    });
-                }
-                return workingDays;
-            }
+            List<Dictionary<string, object>> saptamaniList = new();
 
-            var saptamaniList = new List<Dictionary<string, object>>();
-            foreach (var item in saptamaniEnumerable)
+            if (docSnap.Exists &&
+                docSnap.TryGetValue("saptamani", out object saptamaniObj) &&
+                saptamaniObj is IEnumerable<object> saptamaniEnumerable)
             {
-                if (item is Dictionary<string, object> dict)
-                    saptamaniList.Add(dict);
+                foreach (var item in saptamaniEnumerable)
+                {
+                    if (item is Dictionary<string, object> dict)
+                        saptamaniList.Add(dict);
+                }
             }
 
             for (DateTime day = startDate.Date; day <= endDate.Date; day = day.AddDays(1))
             {
-                if (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday)
+                bool isWeekend = day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday;
+                bool isHoliday = holidayDates.Contains(day.Date);
+
+                if (isWeekend || isHoliday)
                 {
                     workingDays.Add(new WorkingDayDTO
                     {
@@ -73,7 +83,6 @@ namespace PlataCuOraApp.Server.Services
                         continue;
 
                     var weekEnd = weekStart.AddDays(6);
-
                     if (day >= weekStart && day <= weekEnd)
                     {
                         matchedWeek = sapt;
@@ -81,19 +90,7 @@ namespace PlataCuOraApp.Server.Services
                     }
                 }
 
-                if (matchedWeek == null)
-                {
-                    workingDays.Add(new WorkingDayDTO
-                    {
-                        Date = day.ToString("yyyy-MM-dd"),
-                        DayOfWeek = day.DayOfWeek.ToString(),
-                        IsWorkingDay = false,
-                        Parity = ""
-                    });
-                    continue;
-                }
-
-                string paritate = matchedWeek.TryGetValue("paritate", out var p) ? p.ToString() : "";
+                string paritate = matchedWeek?.TryGetValue("paritate", out var p) == true ? p.ToString() : "";
 
                 workingDays.Add(new WorkingDayDTO
                 {

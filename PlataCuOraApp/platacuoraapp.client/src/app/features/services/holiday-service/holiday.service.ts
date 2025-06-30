@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { CalendarDay } from '../../../models/calendarDay.model';
@@ -42,14 +42,16 @@ export class HolidayService {
   getWorkingDays(userId: string, start: string, end: string): Observable<CalendarDay[]> {
     return this.http.get<CalendarDay[]>(`/api/WorkingDays/${userId}/${start}/${end}`);
   }
+  
 
-  genereazaDeclaratie(userId: string, zileLucrate: Date[]): Observable<Blob> {
-    return this.http.post(
-      `/api/declaratie/genereaza?userId=${encodeURIComponent(userId)}`, 
-      zileLucrate,
-      { responseType: 'blob' }
-    );
+  genereazaDeclaratie(userId: string, zileLucrate: Date[], firstDay: string, lastDay: string) {
+    const url = `/api/Declaratie/genereaza?userId=${userId}&firstDay=${firstDay}&lastDay=${lastDay}`;
+    return this.http.post(url, zileLucrate, { responseType: 'blob' });
   }
 
+  genereazaDeclaratieExcel(userId: string, zileLucrate: Date[], startDate: string, endDate: string): Observable<Blob> {
+    const url = `/api/declaratie/genereaza-excel?userId=${userId}&firstDay=${startDate}&lastDay=${endDate}`;
+    return this.http.post(url, zileLucrate, { responseType: 'blob' });
+  }
 
 }

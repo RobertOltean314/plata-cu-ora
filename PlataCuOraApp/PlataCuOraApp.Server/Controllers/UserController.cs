@@ -95,5 +95,16 @@ namespace PlataCuOra.Server.Controllers
                 return StatusCode(500, new { message = "A aparut o eroare interna." });
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserByIdAsync(string id)
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+
+            if (user == null)
+                return NotFound(new { message = $"User with ID {id} not found." });
+
+            return Ok(user);
+        }
     }
 }

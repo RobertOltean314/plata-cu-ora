@@ -13,6 +13,7 @@ import { InfoUserService, InfoUserDTO } from '../services/userInfo-services/user
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
   user$: Observable<User | null> | undefined;
+  userDis: any;
   private logoutSubscription?: Subscription;
 
   profiles: InfoUserDTO[] = [];
@@ -29,6 +30,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    this.userService.getLoggedInUser().subscribe(user => {
+      this.userDis = user;
+    });
     this.user$ = this.userService.user$;
     this.user$.pipe(take(1)).subscribe(user => {
       if (user) {

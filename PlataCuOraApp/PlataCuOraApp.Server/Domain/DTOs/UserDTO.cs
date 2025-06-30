@@ -1,3 +1,5 @@
+using Google.Cloud.Firestore;
+
 namespace PlataCuOra.Server.Domain.DTOs
 {
     public class UserDTO
@@ -6,6 +8,7 @@ namespace PlataCuOra.Server.Domain.DTOs
         public string Id { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+
         public string Role { get; set; } = string.Empty;
     }
 }
