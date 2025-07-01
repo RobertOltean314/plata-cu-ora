@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { HolidayService } from '../services/holiday-service/holiday.service';
 import { UserService } from '../services/user-services/user.service';
+import { InfoUserDTO, InfoUserService } from '../services/userInfo-services/user-info.service';
+import { OrarService } from '../services/orar-services/orar-service.service';
+import { OrarEntry } from '../../models/orar-entry.model';
+import { ParitateSaptService } from '../services/partitate-sapt-services/paritate-sapt.service';
+import { ParitateSaptamana } from '../../models/paritate-sapt.model';
 
 export interface CalendarDay {
   date: Date;
@@ -30,10 +35,26 @@ export class CalendarComponent implements OnInit {
   calendarValidated = false;
 
 
+  successMessage: string = '';
+  errorMessage: string = '';
+
+  //profile
+  profiles: InfoUserDTO[] = [];
+  selectedProfile?: InfoUserDTO;
+
+  //orar
+  orar: OrarEntry[] = [];
+
+  //struct sem
+  paritati: ParitateSaptamana[] = [];
+
   constructor(
     private fb: FormBuilder,
     private holidayService: HolidayService,
-    private userService: UserService
+    private userService: UserService,
+    private infoUserService: InfoUserService,
+    private orarService: OrarService,
+    private paritateService: ParitateSaptService
   ) {
     const today = new Date();
     const firstDay = new Date();
@@ -43,6 +64,71 @@ export class CalendarComponent implements OnInit {
       startDate: [],  // "yyyy-MM-dd"
       endDate: []      // "yyyy-MM-dd"
     }, { validators: this.validateDateRange });
+
+    this.userId = this.userService.getUserId();
+    if (this.userId) {
+      this.loadProfiles();
+      this.loadOrar();
+      this.loadParitati();
+    }
+  }
+
+  validateDataCalendar() {
+    const hasProfiles = this.profiles.length > 0;
+    const hasOrar = this.orar.length > 0;
+    const hasParitati = this.paritati.length > 0;
+    const hasActiveProfile = this.profiles.some(p => p.isActive === true);
+
+    if (!hasProfiles || !hasOrar || !hasParitati || !hasActiveProfile) {
+      let messages = [];
+
+      if (!hasProfiles) messages.push('Nu există profil(e) disponibile.');
+      if (!hasOrar) messages.push('Nu există date în orar.');
+      if (!hasParitati) messages.push('Structura semestrului nu este completă.');
+      if (!hasActiveProfile) messages.push('Niciun profil nu este activat.');
+
+      alert('Validarea a eșuat:\n' + messages.join('\n'));
+      return; 
+    }
+    console.log('Date calendar validate cu succes!');
+  }
+
+
+  loadProfiles() {
+    if (!this.userId) return;
+    this.infoUserService.getAllInfo(this.userId).subscribe({
+      next: (profiles) => {
+        this.profiles = profiles;
+        // Only select the active profile, do not default to the first one
+        this.selectedProfile = profiles.find(p => p.isActive) || undefined;
+      },
+      error: () => {
+        this.errorMessage = 'Could not load profiles.';
+        setTimeout(() => this.errorMessage = '', 3000);
+      }
+    });
+  }
+
+  loadOrar() {
+    if (!this.userId) return;
+    this.orarService.getAll(this.userId).subscribe({
+      next: (data) => {
+        this.orar = data;
+      },
+      error: (err) => {
+        console.error('Eroare la încărcare orar:', err);
+      }
+    });
+  }
+
+  loadParitati() {
+    if (this.userId) {
+      this.paritateService.getParitate(this.userId).subscribe(data => {
+        this.paritati = data;
+      });
+    } else {
+      console.warn('UserId is null, cannot load data');
+    }
   }
 
   validateDateRange(group: FormGroup): { [key: string]: any } | null {
@@ -119,6 +205,7 @@ export class CalendarComponent implements OnInit {
   }
 
   validateCalendar() {
+    this.validateDataCalendar();
     if (this.calendarData.length > 0) {
       this.status = 'Validat';
       this.calendarValidated = true;

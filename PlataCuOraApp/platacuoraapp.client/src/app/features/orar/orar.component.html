@@ -53,7 +53,13 @@
           <ng-template #readNrPost><td>{{ o.nrPost }}</td></ng-template>
 
           <td *ngIf="isEditable; else readDenPost">
-            <input type="text" class="form-control" [(ngModel)]="o.denPost" />
+            <select class="form-control" [(ngModel)]="o.denPost">
+              <option value="Prof.">Prof.</option>
+              <option value="Conf.">Conf.</option>
+              <option value="Sef L.">Sef L.</option>
+              <option value="Lect.">Lect.</option>
+              <option value="Asist.">Asist.</option>
+            </select>
           </td>
           <ng-template #readDenPost><td>{{ o.denPost }}</td></ng-template>
 
@@ -107,6 +113,7 @@
             <select class="form-control" [(ngModel)]="o.imparPar">
               <option value="Par">Par</option>
               <option value="Impar">Impar</option>
+              <option value=" "></option>
             </select>
           </td>
           <ng-template #readImparPar><td>{{ o.imparPar }}</td></ng-template>
@@ -138,7 +145,15 @@
         <!-- rând adăugare -->
         <tr *ngIf="addingNew">
           <td><input type="number" class="form-control" [(ngModel)]="newEntry.nrPost" /></td>
-          <td><input type="text" class="form-control" [(ngModel)]="newEntry.denPost" /></td>
+          <td>
+            <select class="form-control" [(ngModel)]="newEntry.denPost">
+              <option value="Prof.">Prof.</option>
+              <option value="Conf.">Conf.</option>
+              <option value="Sef L.">Sef L.</option>
+              <option value="Lect.">Lect.</option>
+              <option value="Asist.">Asist.</option>
+            </select>
+          </td>
           <td><input type="number" class="form-control" [(ngModel)]="newEntry.oreCurs" /></td>
           <td><input type="number" class="form-control" [(ngModel)]="newEntry.oreSem"  /></td>
           <td><input type="number" class="form-control" [(ngModel)]="newEntry.oreLab"  /></td>
@@ -165,6 +180,7 @@
             <select class="form-control" [(ngModel)]="newEntry.imparPar">
               <option value="Par">Par</option>
               <option value="Impar">Impar</option>
+              <option value=" "></option>
             </select>
           </td>
           <td><input type="text" class="form-control" [(ngModel)]="newEntry.materia" /></td>

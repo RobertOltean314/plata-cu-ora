@@ -8,7 +8,7 @@ import { UserService } from '../services/user-services/user.service';
 
 export interface Orar {
   nrPost: number;
-  denPost: string;
+  denPost: 'Prof.'| 'Conf.' | 'Sef L.' | 'Lect.' | 'Asist.';
   oreCurs: number;
   oreSem: number;
   oreLab: number;
@@ -16,7 +16,7 @@ export interface Orar {
   tip: 'LR' | 'MR' | 'LE' | 'ME';
   formatia: string;
   ziua: 'Luni' | 'Marti' | 'Miercuri' | 'Joi' | 'Vineri';
-  imparPar: 'Par' | 'Impar';
+  imparPar: 'Par' | 'Impar' | ' ';
   materia: string;
   saptamanaInceput: string; 
   totalOre?: number; 
